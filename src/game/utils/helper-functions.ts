@@ -178,6 +178,15 @@ export function generateRandomColor() {
   return lighterColor;
 }
 
+export function randomPlaceColor() {
+  const colors = [
+    0xff4501, 0xffa800, 0xffd635, 0x00a368, 0x7eed55, 0x2350a4, 0x3790e9,
+    0x51e9f4, 0x801e9f, 0xb44abf, 0xff99aa, 0x9c6926, 0x00c853, 0xff4081,
+    0x795548, 0xff6f61, 0xa0e6ff, 0xff6347, 0x8a2be2, 0x008080,
+  ];
+  return colors[randomNum(colors.length - 1)];
+}
+
 export function oneIn(chance: number): boolean {
   if (!Math.floor(Math.random() * chance)) return true;
   return false;
@@ -185,4 +194,7 @@ export function oneIn(chance: number): boolean {
 
 export function randomNum(num: number): number {
   return Math.floor(Math.random() * num);
+}
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max);
 }

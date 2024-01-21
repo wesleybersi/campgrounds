@@ -1,0 +1,18 @@
+.weapon {
+  transition: all 250ms ease;
+  width: 5rem;
+  height: 5rem;
+  background: var(--bg);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-content: center;
+  font-size: 1.25rem;
+  color: white;
+  font-weight: 600;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  * {
+    text-align: center;
+  }
+}

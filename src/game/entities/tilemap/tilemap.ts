@@ -1,25 +1,61 @@
 import { CELL_HEIGHT, CELL_WIDTH } from "../../scenes/Main/constants";
 import MainScene from "../../scenes/Main/MainScene";
+import { oneIn, randomNum } from "../../utils/helper-functions";
+import { autoTile } from "./walls/auto-tile";
 
 export default class BasicTilemap {
   scene: MainScene;
   floorMap: Phaser.Tilemaps.Tilemap;
+  wallMap: Phaser.Tilemaps.Tilemap;
   floorTiles!: Phaser.Tilemaps.Tileset;
   floor!: Phaser.Tilemaps.TilemapLayer;
-  constructor(scene: MainScene) {
+  wallTiles!: Phaser.Tilemaps.Tileset;
+  walls!: Phaser.Tilemaps.TilemapLayer;
+  highlightedCells!: Phaser.Tilemaps.TilemapLayer;
+  constructor(scene: MainScene, rows: number, cols: number) {
     this.scene = scene as MainScene;
     this.floorMap = scene.make.tilemap({
       tileWidth: CELL_WIDTH,
       tileHeight: CELL_HEIGHT,
-      width: scene.colCount,
-      height: scene.rowCount,
+      width: cols,
+      height: rows,
+    });
+    this.wallMap = scene.make.tilemap({
+      tileWidth: CELL_WIDTH,
+      tileHeight: CELL_HEIGHT,
+      width: cols,
+      height: rows,
     });
 
     const floorTiles = this.floorMap.addTilesetImage("floor");
     if (floorTiles) this.floorTiles = floorTiles;
 
-    const baseLayer = this.floorMap.createBlankLayer(
-      "Base Layer",
+    const wallTiles = this.wallMap.addTilesetImage("walls");
+    if (wallTiles) this.wallTiles = wallTiles;
+
+    const floorLayer = this.floorMap.createBlankLayer(
+      "Floor Layer",
+      this.floorTiles,
+      0,
+      0,
+      scene.colCount,
+      scene.rowCount,
+      CELL_WIDTH,
+      CELL_HEIGHT
+    );
+    const wallLayer = this.wallMap.createBlankLayer(
+      "Wall Layer",
+      this.wallTiles,
+      0,
+      0,
+      scene.colCount,
+      scene.rowCount,
+      CELL_WIDTH,
+      CELL_HEIGHT
+    );
+
+    const highlightedCells = this.floorMap.createBlankLayer(
+      "Highlighted Cells Layer",
       this.floorTiles,
       0,
       0,
@@ -29,45 +65,45 @@ export default class BasicTilemap {
       CELL_HEIGHT
     );
 
-    if (baseLayer) this.floor = baseLayer;
+    if (floorLayer) this.floor = floorLayer;
+    if (wallLayer) this.walls = wallLayer;
+    if (highlightedCells) this.highlightedCells = highlightedCells;
 
+    // this.highlightedCells.setAlpha(0);
     this.floor.setDepth(0);
+    this.walls.setDepth(1);
 
     this.placeInitialTiles();
   }
 
   placeEmptyFloorTile(col: number, row: number) {
-    const newTile = this.floor.putTileAt(0, col, row);
+    // const frame = randomNum(6);
+    let frame = 0;
+    if (oneIn(4)) {
+      frame = randomNum(6);
+    }
+    const newTile = this.floor.putTileAt(frame, col, row);
     if (!newTile) return;
-    newTile.alpha = Math.max(Math.random() * 0.1, 0.05);
+
+    newTile.tint = 0x798c9a;
+    // newTile.alpha = 0.75;
+  }
+
+  placeWallTile(col: number, row: number) {
+    const newTile = this.walls.putTileAt(-1, col, row);
+    if (this.floor.hasTileAt(col, row)) {
+      this.floor.removeTileAt(col, row);
+    }
+    if (!newTile) return;
+    newTile.index = autoTile(newTile, this.scene.matrix);
+    newTile.tint = 0x798c9a;
+    newTile.properties.type = "wall";
+    // newTile.alpha = 0.75;
   }
 
   placeInitialTiles() {
-    const doubleWord = { chance: 250, color: 0xad4052 };
-    const tripleWord = { chance: 500, color: 0xefc350 };
-    const doubleLetter = { chance: 250, color: 0x489ad9 };
-    const tripleLetter = { chance: 500, color: 0x6de36b };
-
     this.floor.forEachTile((tile) => {
-      // if (!Math.floor(Math.random() * doubleWord.chance)) {
-      //   const newTile = this.floor.putTileAt(0, tile.x, tile.y);
-      //   newTile.properties = { multiplier: "Double Word" };
-      //   newTile.tint = doubleWord.color;
-      // } else if (!Math.floor(Math.random() * tripleWord.chance)) {
-      //   const newTile = this.floor.putTileAt(0, tile.x, tile.y);
-      //   newTile.properties = { multiplier: "Triple Word" };
-      //   newTile.tint = tripleWord.color;
-      // } else if (!Math.floor(Math.random() * doubleLetter.chance)) {
-      //   const newTile = this.floor.putTileAt(0, tile.x, tile.y);
-      //   newTile.properties = { multiplier: "Double Letter" };
-      //   newTile.tint = doubleLetter.color;
-      // } else if (!Math.floor(Math.random() * tripleLetter.chance)) {
-      //   const newTile = this.floor.putTileAt(0, tile.x, tile.y);
-      //   newTile.properties = { multiplier: "Triple Letter" };
-      //   newTile.tint = tripleLetter.color;
-      // } else {
       this.placeEmptyFloorTile(tile.x, tile.y);
-      // }
     });
   }
 }
