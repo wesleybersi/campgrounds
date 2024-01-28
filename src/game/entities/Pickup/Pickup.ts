@@ -18,6 +18,7 @@ export class Pickup extends Phaser.GameObjects.Sprite {
     this.row = row;
     this.col = col;
     this.setOrigin(0.5, 0.5);
+    this.setDepth(10);
     this.setScale(0);
 
     this.scene.emitter.emitSmoke(this.x, this.y);
@@ -25,7 +26,8 @@ export class Pickup extends Phaser.GameObjects.Sprite {
       targets: this,
       duration: 1000,
       ease: "Sine.In",
-      scale: 0.45,
+      scale: 0.1,
+
       onComplete: () => {
         if (this.scene) {
           this.scene.tweens.add({
@@ -33,23 +35,27 @@ export class Pickup extends Phaser.GameObjects.Sprite {
             duration: 650,
             yoyo: true,
             repeat: Infinity,
-            scale: 0.55,
+            scale: 0.1,
           });
         }
       },
     });
+    this.scene.events.once("clear", this.remove, this);
 
     scene.pickupsByPos.set(`${row},${col}`, this);
     scene.add.existing(this);
   }
   update(type: string, tier: string) {
     this.setTexture(type.toLowerCase());
+    this.emitSmoke();
+    this.remove();
+  }
+  emitSmoke() {
     this.scene.emitter.emitSmoke(this.x, this.y);
   }
   remove() {
-    this.scene.emitter.emitSmoke(this.x, this.y);
+    this.scene.events.removeListener("clear", this.remove, this);
     this.scene.pickupsByPos.delete(`${this.row},${this.col}`);
-
     this.destroy();
   }
 }

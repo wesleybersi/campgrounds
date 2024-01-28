@@ -15,13 +15,13 @@ export class Stairs extends Phaser.GameObjects.Sprite {
     this.scene = scene;
     this.setOrigin(0.5, 0.5);
     scene.add.existing(this);
-    this.setDepth(500);
 
-    scene.objectsByPos.set(`${row},${col}`, this);
     this.setDepth(0);
+    this.scene.events.once("clear", this.remove, this);
   }
 
   remove() {
+    this.scene.events.removeListener("clear", this.remove, this);
     this.destroy();
   }
 }

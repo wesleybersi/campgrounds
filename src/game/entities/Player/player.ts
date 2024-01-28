@@ -3,10 +3,12 @@ import MainScene from "../../scenes/Main/MainScene";
 import { CELL_HEIGHT, CELL_WIDTH } from "../../scenes/Main/constants";
 import { Bow } from "../Weapon/Bow";
 import { Crossbow } from "../Weapon/Crossbow";
+import { Spear } from "../Weapon/Spear";
+import { Sword } from "../Weapon/Sword";
 
-type Weapon = Bow;
+type Weapon = Bow | Crossbow | Sword | Spear;
 export class Player extends Phaser.GameObjects.Container {
-  state: "Idle" | "Moving" | "Dead" = "Idle";
+  state: "Idle" | "Moving" | "Falling" | "Dead" = "Idle";
   scene: MainScene;
   id: string;
   name: string;
@@ -26,7 +28,7 @@ export class Player extends Phaser.GameObjects.Container {
     id: string,
     name: string,
     color: number,
-    weapon: { type: string; tier: string },
+    weapon: { type: string; tier: string } | null,
     x: number,
     y: number
   ) {
@@ -35,7 +37,7 @@ export class Player extends Phaser.GameObjects.Container {
     this.name = name;
     this.id = id;
     this.color = color;
-    this.changeWeapon(weapon);
+    if (weapon) this.changeWeapon(weapon);
 
     this.sprite = this.scene.add.sprite(0, 0, "player");
 
@@ -45,16 +47,31 @@ export class Player extends Phaser.GameObjects.Container {
     scene.playersByID.set(this.id, this);
     scene.add.existing(this);
     this.createAnimations();
+    this.scene.events.on("clear", this.delete, this);
   }
 
   update(
     x: number,
     y: number,
+    state: "moving" | "falling" | "swimming",
     angle: number,
-    weapon: { type: string; tier: string; isLoaded?: boolean },
+    weapon: {
+      type: string;
+      tier: string;
+      isLoaded?: boolean;
+      isAttack?: boolean;
+      force?: number;
+      position?: string;
+    },
     wasHit?: boolean,
     isDead?: boolean
   ) {
+    if (state === "falling") {
+      this.state = "Falling";
+      this.setAnimations(0);
+      return;
+    }
+
     if (x !== this.x || y !== this.y) {
       this.state = "Moving";
     } else {
@@ -82,6 +99,16 @@ export class Player extends Phaser.GameObjects.Container {
     );
 
     if (this.weapon?.type !== weapon?.type) this.changeWeapon(weapon);
+
+    if (this.weapon && weapon.isAttack) {
+      this.weapon.attack(weapon.position);
+    }
+    if (weapon?.force && weapon.force > 0) {
+      if (this.weapon instanceof Spear) {
+        this.weapon.hold(weapon.force);
+      }
+    }
+
     if (this.weapon && this.weapon instanceof Crossbow) {
       if (weapon.isLoaded) {
         this.weapon.load();
@@ -98,6 +125,12 @@ export class Player extends Phaser.GameObjects.Container {
         break;
       case "Crossbow":
         this.weapon = new Crossbow(this, weapon.tier);
+        break;
+      case "Spear":
+        this.weapon = new Spear(this, weapon.tier);
+        break;
+      case "Sword":
+        this.weapon = new Sword(this, weapon.tier);
         break;
       default:
         this.weapon = null;
@@ -163,6 +196,16 @@ export class Player extends Phaser.GameObjects.Container {
       frameRate: 5,
       repeat: 0,
     });
+    this.sprite.anims.create({
+      key: "falling",
+      frames: this.sprite.anims.generateFrameNumbers("player", {
+        start: 90,
+        end: 95,
+      }),
+      frameRate: 5,
+      repeat: 0,
+      hideOnComplete: true,
+    });
   }
 
   setAnimations(angle: number) {
@@ -194,48 +237,24 @@ export class Player extends Phaser.GameObjects.Container {
 
         break;
 
+      case "Falling":
+        if (this.sprite.anims.currentAnim?.key !== "falling") {
+          this.sprite.anims.play("falling");
+        }
+        console.log("FALLING ANIMATIOn");
+
+        break;
+
       case "Dead":
         if (this.sprite.anims.currentAnim?.key !== "dead") {
           this.sprite.anims.play("dead");
         }
         break;
-
-        // case "Jumping":
-        //   if (this.sprite.anims.currentAnim?.key !== "Jumping") {
-        //     this.sprite.anims.play("Jumping");
-        //   }
-
-        //   break;
-        // case "Falling":
-        //   if (this.sprite.anims.currentAnim?.key !== "Falling") {
-        //     this.sprite.anims.play("Falling");
-        //   }
-
-        //   break;
-        // case "Gliding":
-        //   if (this.sprite.anims.currentAnim?.key !== "Gliding") {
-        //     this.sprite.anims.play("Gliding");
-        //   }
-        //   break;
-        // case "WallClimbing":
-        //   if (this.sprite.anims.currentAnim?.key !== "WallClimbing") {
-        //     this.sprite.anims.play("WallClimbing");
-        //   }
-        //   break;
-        // case "Climbing":
-        //   if (this.sprite.anims.currentAnim?.key !== "Climbing") {
-        //     this.sprite.anims.play("Climbing");
-        //   }
-        //   break;
-        // case "Ducking":
-        //   if (this.sprite.anims.currentAnim?.key !== "Ducking") {
-        //     this.sprite.anims.play("Ducking");
-        //   }
-        break;
     }
   }
 
   delete() {
+    this.scene.events.removeListener("clear", this.delete, this);
     this.scene.playersByID.delete(this.id);
     this.movementTween?.destroy();
     this.rotationTween?.destroy();

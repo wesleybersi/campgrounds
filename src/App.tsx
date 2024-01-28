@@ -1,20 +1,36 @@
 import { useEffect, useState } from "react";
 import styles from "./App.module.scss";
-import Game from "./game/game";
 import socket from "./game/socket";
-import IconNL from "./assets/icon-nl.png";
-import { HiUsers as IconUsers } from "react-icons/hi";
 import Weapon from "./components/Weapon/Weapon";
+
+import { GiPocketBow as IconBow } from "react-icons/gi";
+import { GiCrossbow as IconCrossbow } from "react-icons/gi";
+import { GiSpearFeather as IconSpear } from "react-icons/gi";
+import { LuSword as IconSword } from "react-icons/lu";
+
+import { IconType } from "react-icons";
+import Dialog from "./components/Dialog/Dialog";
+import Status from "./components/Status/Status";
+import Leaderboard from "./components/Leaderboard/Leaderboard";
+import Inventory from "./components/Inventory/Inventory";
+import CurrentFloor from "./components/CurrentFloor/CurrentFloor";
+import Dead from "./components/Dead/Dead";
+import { LargeNumberLike } from "crypto";
 
 interface GameData {
   client: {
     name: string;
     health: number;
+    gold: number;
+    state: string;
     color: number;
     floor: number;
-    weaponry: { type: string; tier: string }[];
+    secondsAlive: number;
+    weaponry: { type: string; tier: string; durability: number }[];
     weaponIndex: number;
     projectiles: { arrows: number };
+
+    dialog?: { name: string; text: string[] };
   };
 }
 export interface GameIntervalData {
@@ -28,22 +44,25 @@ export interface GameIntervalData {
   }[];
 }
 
-function App() {
-  const [gridSize, setGridSize] = useState<{ rows: number; cols: number }>({
-    rows: 0,
-    cols: 0,
-  });
+function UI() {
   const [player, setPlayer] = useState<{
     name: string;
+    state: string;
     health: number;
+    gold: number;
     floor: number;
+    secondsAlive: number;
     color: string;
-    weaponry: { type: string; tier: string }[];
+    weaponry: { type: string; tier: string; durability: number }[];
     weaponIndex: number;
     projectiles: { arrows: number };
+    dialog?: { name: string; text: string[] };
   }>({
     health: 100,
+    state: "",
     floor: 0,
+    gold: 0,
+    secondsAlive: 0,
     name: "",
     color: "",
     weaponry: [],
@@ -63,22 +82,20 @@ function App() {
   >([]);
 
   useEffect(() => {
-    socket.on("Initial Game Data", (gameData) => {
-      const rows = gameData.grid.rows;
-      const cols = gameData.grid.cols;
-      setGridSize({ rows, cols });
-    });
-
     socket.on("Game State Update", (gameData: GameData) => {
       const { client } = gameData;
       setPlayer({
         name: client.name,
+        state: client.state,
         health: client.health,
+        gold: client.gold,
         floor: client.floor,
         color: numericColorToHex(client.color),
         weaponry: client.weaponry,
+        secondsAlive: client.secondsAlive,
         weaponIndex: client.weaponIndex,
         projectiles: client.projectiles,
+        dialog: client.dialog ?? undefined,
       });
     });
 
@@ -92,136 +109,68 @@ function App() {
   }, [socket]);
 
   return (
-    <div className={styles.App}>
-      <div className={styles.ui}>
-        <section className={styles.player}>
-          {Array.from({ length: 2 }).map((_, index) => (
-            <div
-              className={styles.item}
-              style={{
-                minWidth: "250px",
-                minHeight: "2.75rem",
-                background: index === 0 ? player.color : "",
-                marginRight: `calc(250px + ${index * 16}px)`,
-              }}
-            >
-              {index === 0 && (
-                <div
-                  style={{
-                    display: "flex",
-                    gap: "1rem",
-                    fontSize: "1.25rem",
-                    fontWeight: 600,
-                  }}
-                >
-                  <span className={styles.transcolor}>
-                    <span
-                      className={styles.inner}
-                      style={{
-                        backgroundColor: player.color,
-                      }}
-                    />
-                  </span>
-                  <span>{player.name}</span>
-                </div>
-              )}
-              {index === 1 && (
-                <div style={{ display: "flex", gap: "2rem" }}>
-                  <span className={styles.transcolor}>
-                    <span className={styles.inner} />
-                  </span>
-                  <span>Health: {player.health}</span>
-                  <span>-{player.floor}F</span>
-                </div>
-              )}
-              {/* {index === 2 && (
-                <button
-                  style={{ pointerEvents: "all" }}
-                  onClick={() => socket.emit("Random Position Request")}
-                >
-                  Random
-                </button>
-              )} */}
-            </div>
-          ))}
-        </section>
+    <div className={styles.App} style={{ pointerEvents: "none" }}>
+      {/* {currentFloor && (
+        <div
+          className={styles.floorEntry}
+          onAnimationEnd={() => {
+            setCurrentFloor(null);
+          }}
+        >
+          <h1>-{currentFloor}F</h1>
+        </div>
+      )} */}
+      {player.dialog && <Dialog dialog={player.dialog} />}
+      {player.state === "dead" && <Dead secondsAlive={player.secondsAlive} />}
 
+      <div className={styles.ui}>
+        <Status
+          name={player.name}
+          color={player.color}
+          health={player.health}
+          floor={player.floor}
+          gold={player.gold}
+        />
+        <Leaderboard leaderboard={leaderboard} />
+        {player.state === "in-inventory" && <Inventory inventory={[]} />}
         {/* <section className={styles.timer}>
           <div className={styles.lang}>
             <img src={IconNL} alt="NL" />
           </div>
 
-          <div className={styles.time}>
-
-          </div>
+          <div className={styles.time}></div>
           <div className={styles.left}>
             <IconUsers size="24px" />
-
           </div>
+        </section> */}
 
-        </section> */}
-        <section className={styles.leaderboard}>
-          {leaderboard
-            .slice(0, 8)
-            .map(({ name, color, floor, secondsAlive }, index) => (
-              <div
-                className={styles.item}
-                style={{
-                  minWidth: "265px",
-                  marginLeft: `calc(250px + ${index * 16}px)`,
-                }}
-              >
-                <span
-                  className={styles.color}
-                  style={{ background: color }}
-                ></span>
-                <span className={styles.position}>{index + 1}</span>
-                <span>{floor}F</span>
-                <span>{name}</span>
-                <span className={styles.score}>
-                  {formatSeconds(secondsAlive)}
-                </span>
-              </div>
-            ))}
-        </section>
-        {/* <section
-          className={styles.map}
-          style={{
-            aspectRatio: `${gridSize.cols} / ${gridSize.rows}`,
-            width: 200,
-          }}
-        >
-          {positions.map((position) => {
-            const isClient = position.id === playerData.id;
-            return (
-              <span
-                style={{
-                  display: "block",
-                  position: "absolute",
-                  top: `${(position.row / gridSize.rows) * 100}%`,
-                  left: `${(position.col / gridSize.cols) * 100}%`,
-                  width: isClient ? 8 : 3,
-                  height: isClient ? 8 : 3,
-                  borderRadius: "50%",
-                  background: position.color,
-                  transition: "128ms ease all",
-                  // outline: isClient ? "1px solid rgba(255,255,255,0.75)" : "",
-                }}
-              ></span>
-            );
-          })}
-        </section> */}
+        <CurrentFloor floor={player.floor} />
+
         <section className={styles.weaponry}>
           {player.weaponry
-            // .slice(0, 3)
-            .map(({ type, tier }, index) => (
-              <Weapon
-                type={type}
-                tier={tier}
-                icon={""}
-                isSelected={player.weaponIndex === index}
-              />
-            ))}
+            .slice(0, 4)
+            .map(({ type, tier, durability }, index) => {
+              let icon: IconType = IconBow;
+              if (type === "Bow") {
+                icon = IconBow;
+              } else if (type === "Crossbow") {
+                icon = IconCrossbow;
+              } else if (type === "Spear") {
+                icon = IconSpear;
+              } else if (type === "Sword") {
+                icon = IconSword;
+              }
+              return (
+                <Weapon
+                  index={index + 1}
+                  type={type}
+                  tier={tier}
+                  durability={durability}
+                  icon={icon}
+                  isSelected={player.weaponIndex === index}
+                />
+              );
+            })}
         </section>
         <section className={styles.quiver}>
           <div
@@ -237,12 +186,12 @@ function App() {
         </section>
       </div>
 
-      <Game />
+      {/* <Game /> */}
     </div>
   );
 }
 
-export default App;
+export default UI;
 
 function formatTime(seconds: number) {
   const minutes = Math.floor(seconds / 60);
@@ -274,13 +223,3 @@ const greenToRed = [
   "#1c7200",
   "#008000",
 ];
-
-function formatSeconds(seconds: number): string {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-
-  const minutesString = minutes > 0 ? `${minutes}m` : "";
-  const secondsString = `${remainingSeconds}s`;
-
-  return `${minutesString} ${secondsString}`;
-}

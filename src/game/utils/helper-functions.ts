@@ -198,3 +198,21 @@ export function randomNum(num: number): number {
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max);
 }
+
+export function getAngleOffset(
+  x: number,
+  y: number,
+  angle: number,
+  offset: number
+) {
+  const deltaX = Math.cos(angle * (Math.PI / 180));
+  const deltaY = Math.sin(angle * (Math.PI / 180));
+  const initialX = x + deltaX * offset;
+  const initialY = y + deltaY * offset;
+
+  return { x: initialX, y: initialY };
+}
+
+export function randomNumInRange(min: number, max: number) {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+}

@@ -1,6 +1,5 @@
 import { CELL_HEIGHT, CELL_WIDTH } from "../../scenes/Main/constants";
 import MainScene from "../../scenes/Main/MainScene";
-import { oneIn, randomNum } from "../../utils/helper-functions";
 import { autoTile } from "./walls/auto-tile";
 
 export default class BasicTilemap {
@@ -69,41 +68,46 @@ export default class BasicTilemap {
     if (wallLayer) this.walls = wallLayer;
     if (highlightedCells) this.highlightedCells = highlightedCells;
 
-    // this.highlightedCells.setAlpha(0);
     this.floor.setDepth(0);
     this.walls.setDepth(1);
+    this.highlightedCells.setDepth(2);
+    this.highlightedCells.setAlpha(0.5);
 
-    this.placeInitialTiles();
+    this.scene.events.once("clear", this.remove, this);
   }
 
-  placeEmptyFloorTile(col: number, row: number) {
-    // const frame = randomNum(6);
-    let frame = 0;
-    if (oneIn(4)) {
-      frame = randomNum(6);
-    }
+  placeEmptyFloorTile(col: number, row: number, frame: number) {
     const newTile = this.floor.putTileAt(frame, col, row);
     if (!newTile) return;
 
-    newTile.tint = 0x798c9a;
-    // newTile.alpha = 0.75;
+    //TODO Tint gets darker based on depth
+
+    newTile.tint = 0x4d454a;
+    newTile.tint = 0x454a4d;
   }
 
-  placeWallTile(col: number, row: number) {
+  placeWallTile(col: number, row: number, isCracked?: boolean) {
     const newTile = this.walls.putTileAt(-1, col, row);
-    if (this.floor.hasTileAt(col, row)) {
-      this.floor.removeTileAt(col, row);
-    }
+
     if (!newTile) return;
-    newTile.index = autoTile(newTile, this.scene.matrix);
-    newTile.tint = 0x798c9a;
+
+    newTile.index = autoTile(newTile, this.scene.objectMatrix, isCracked);
+    // newTile.tint = 0x798c9a;
     newTile.properties.type = "wall";
-    // newTile.alpha = 0.75;
   }
 
   placeInitialTiles() {
     this.floor.forEachTile((tile) => {
-      this.placeEmptyFloorTile(tile.x, tile.y);
+      this.placeEmptyFloorTile(tile.x, tile.y, 0);
     });
+  }
+  remove() {
+    this.floor.forEachTile((tile) => tile.destroy());
+    this.floor.destroy();
+    this.highlightedCells.forEachTile((tile) => tile.destroy());
+    this.highlightedCells.destroy();
+    this.floorMap.destroy();
+    this.wallMap.destroy();
+    this.scene.events.removeListener("clear", this.remove, this);
   }
 }

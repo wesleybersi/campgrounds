@@ -3,7 +3,6 @@ import { CELL_HEIGHT } from "../../scenes/Main/constants";
 
 export class Spikes extends Phaser.GameObjects.Sprite {
   scene: MainScene;
-
   row: number;
   col: number;
   constructor(
@@ -17,7 +16,7 @@ export class Spikes extends Phaser.GameObjects.Sprite {
       col * CELL_HEIGHT + CELL_HEIGHT / 2,
       row * CELL_HEIGHT + CELL_HEIGHT / 2,
       "spikes",
-      2
+      initialState === "on" ? 2 : 6
     );
     this.scene = scene;
     this.row = row;
@@ -26,15 +25,22 @@ export class Spikes extends Phaser.GameObjects.Sprite {
     this.setOrigin(0.5, 0.5);
     this.setDepth(2);
     this.scene.add.existing(this);
-    this.scene.spikesByPos.set(`${row},${col}`, this);
-    this.update(initialState);
 
-    this.scene.events.on("clear", () => {
-      this.remove();
-    });
-  }
-  update(state: "on" | "off") {
-    this.anims.play(`turn-${state}`);
+    this.scene.events.on(
+      `spikes-${row}-${col}`,
+      (type: "turn-on" | "turn-off") => {
+        switch (type) {
+          case "turn-on":
+            this.anims.play(type);
+            break;
+          case "turn-off":
+            this.anims.play(type);
+            break;
+        }
+      }
+    );
+
+    this.scene.events.once("clear", this.remove, this);
   }
 
   createAnimations() {
@@ -59,6 +65,8 @@ export class Spikes extends Phaser.GameObjects.Sprite {
   }
 
   remove() {
+    this.scene.events.removeListener("clear", this.remove, this);
+    this.scene.events.removeListener(`spikes-${this.row}-${this.col}`);
     this.destroy();
   }
 }

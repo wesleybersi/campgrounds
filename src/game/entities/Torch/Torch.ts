@@ -25,20 +25,20 @@ export class Torch extends Phaser.GameObjects.Sprite {
     this.anims.play("torch");
 
     this.light = this.scene.add.image(this.x, this.y, "light-64").setDepth(500);
+
     this.scene.tweens.add({
       targets: [this.light],
       scale: 1.15,
+      alpha: 0.015,
       duration: randomNum(100) + 1000,
       ease: "Sine.InOut",
       yoyo: true,
       repeat: -1,
     });
-    this.light.setBlendMode(Phaser.BlendModes.SOFT_LIGHT);
-    this.light.setAlpha(0.1);
+    this.light.setBlendMode(Phaser.BlendModes.SCREEN);
+    this.light.setAlpha(0.025);
 
-    this.scene.events.on("clear", () => {
-      this.remove();
-    });
+    this.scene.events.once("clear", this.remove, this);
   }
 
   createAnimation() {
@@ -52,7 +52,10 @@ export class Torch extends Phaser.GameObjects.Sprite {
       repeat: -1,
     });
   }
+
   remove() {
+    this.scene.events.removeListener("clear", this.remove, this);
+    this.light.destroy();
     this.destroy();
   }
 }

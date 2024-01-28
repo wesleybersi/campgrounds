@@ -10,19 +10,18 @@ export class Bow extends Phaser.GameObjects.Sprite {
     this.setScale(0.09);
     this.scene.add.existing(this);
 
-    this.scene.events.on("clear", () => {
-      this.remove();
-    });
+    this.scene.events.once("clear", this.remove, this);
 
     switch (tier) {
       case "Longbow":
-        this.setScale(1.25);
+        this.setScale(0.115);
         break;
       case "Shortbow":
-        this.setScale(0.5);
+        this.setScale(0.04);
         break;
     }
   }
+  attack() {}
   update(x: number, y: number, angle: number, depth: number) {
     this.setAngle(angle);
     this.setDepth(depth);
@@ -30,6 +29,7 @@ export class Bow extends Phaser.GameObjects.Sprite {
     this.setPosition(x, y);
   }
   remove() {
+    this.scene.events.removeListener("clear", this.remove, this);
     this.destroy();
   }
 }

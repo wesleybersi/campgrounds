@@ -1,21 +1,25 @@
 import MainScene from "../MainScene";
 
 import floorTilesGrey from "../../../assets/images/rogue/floor-a.png";
-import wallTilesGrey from "../../../assets/images/rogue/walls-a.png";
+import wallTilesGrey from "../../../assets/images/rogue/walls-lo.png";
 import crate from "../../../assets/images/rogue/crate.png";
+import spears from "../../../assets/images/rogue/spears.png";
+import spear from "../../../assets/images/rogue/spear.png";
+import sword from "../../../assets/images/rogue/sword.png";
+import wallBelow from "../../../assets/images/rogue/wall-below.png";
+import arrowTrap from "../../../assets/images/rogue/arrow-trap.png";
+import wallTilesNoBottomGrey from "../../../assets/images/rogue/walls-a-nobottom.png.png";
 
-import spritesheetPlayer from "../../../assets/images/spritesheets/player-base.png";
 import circle from "../../../assets/images/tilesets/circle.png";
-import survivor from "../../../assets/images/tilesets/survivor.png";
-
-// import arrow from "../../../assets/images/tilesets/arrow.png";
-// import arrow from "../../../assets/images/tilesets/weapons/arrow_2.png";
 import spikes from "../../../assets/images/rogue/floor-spikes.png";
+import signs from "../../../assets/images/rogue/signs.png";
 import arrow from "../../../assets/images/rogue/items/arrow.png";
 import bow from "../../../assets/images/tilesets/bow.png";
 import light64 from "../../../assets/images/rogue/light-64.png.png";
+import doorHorz from "../../../assets/images/rogue/door-horz.png";
+import doorVert from "../../../assets/images/rogue/door-vert.png";
+import doorLocked from "../../../assets/images/rogue/door-locked.png";
 import particle from "../../../assets/images/tilesets/particle.png";
-import smoke from "../../../assets/images/tilesets/smoke.png";
 import crossbow from "../../../assets/images/tilesets/weapons/crossbow.png";
 
 import torch from "../../../assets/images/rogue/torch.png";
@@ -23,6 +27,12 @@ import holes from "../../../assets/images/tilesets/holes.png";
 import staircaseUp from "../../../assets/images/rogue/staircase-up.png";
 import staircaseDown from "../../../assets/images/rogue/staircase-down.png";
 import pots from "../../../assets/images/rogue/pot.png";
+import heart from "../../../assets/images/rogue/items/heart.png";
+import chest from "../../../assets/images/rogue/chest.png";
+import coin from "../../../assets/images/rogue/coin.png";
+import potionRed from "../../../assets/images/rogue/items/potion-red.png";
+import potionBlue from "../../../assets/images/rogue/items/potion-blue.png";
+import potionGreen from "../../../assets/images/rogue/items/potion-green.png";
 
 import player from "../../../assets/images/rogue/player.png";
 
@@ -80,15 +90,51 @@ export default function preload(this: MainScene) {
     frameWidth: CELL_WIDTH,
     frameHeight: CELL_HEIGHT,
   });
+  this.load.spritesheet("signs", signs, {
+    frameWidth: 16,
+    frameHeight: 16,
+  });
+
+  this.load.spritesheet("sword", sword, {
+    frameWidth: 32,
+    frameHeight: 32,
+  });
 
   this.load.spritesheet("walls", wallTilesGrey, {
     frameWidth: CELL_WIDTH,
     frameHeight: CELL_HEIGHT,
   });
+  this.load.spritesheet("walls-no-bottom", wallTilesNoBottomGrey, {
+    frameWidth: CELL_WIDTH,
+    frameHeight: CELL_HEIGHT,
+  });
+  this.load.spritesheet("spears", spears, {
+    frameWidth: 8,
+    frameHeight: 96,
+  });
+
+  this.load.spritesheet("spear", spear, {
+    frameWidth: 128,
+    frameHeight: 128,
+  });
+
+  this.load.spritesheet("wall-below", wallBelow, {
+    frameWidth: 16,
+    frameHeight: 8,
+  });
+
+  this.load.spritesheet("arrow-trap", arrowTrap, {
+    frameWidth: 16,
+    frameHeight: 16,
+  });
 
   this.load.spritesheet("torch", torch, {
     frameWidth: CELL_WIDTH,
     frameHeight: CELL_HEIGHT,
+  });
+  this.load.spritesheet("chest", chest, {
+    frameWidth: CELL_WIDTH,
+    frameHeight: CELL_HEIGHT * 2,
   });
   this.load.spritesheet("pots", pots, {
     frameWidth: CELL_WIDTH,
@@ -107,6 +153,10 @@ export default function preload(this: MainScene) {
     frameWidth: 64,
     frameHeight: 64,
   });
+  this.load.spritesheet("coin", coin, {
+    frameWidth: CELL_WIDTH,
+    frameHeight: CELL_HEIGHT,
+  });
 
   this.load.spritesheet("crossbow", crossbow, {
     frameWidth: 265,
@@ -114,8 +164,15 @@ export default function preload(this: MainScene) {
   });
 
   this.load.image("crate", crate);
+  this.load.image("door-horz", doorHorz);
+  this.load.image("door-vert", doorVert);
+  this.load.image("door-locked", doorLocked);
 
   this.load.image("arrow", arrow);
+  this.load.image("heart", heart);
+  this.load.image("potion-red", potionRed);
+  this.load.image("potion-blue", potionBlue);
+  this.load.image("potion-green", potionGreen);
 
   this.loadingScene.progress("Loading spritesheets");
   this.load.image("cornerpiece", imageCornerpiece);

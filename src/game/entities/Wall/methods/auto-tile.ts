@@ -7,24 +7,53 @@ export function autoTile(this: Wall, walls: Map<string, Wall>) {
     left: boolean,
     right: boolean
   ): number => {
-    if (right && !left && !top && !bottom) return 1;
-    else if (!right && left && !top && !bottom) return 2;
-    else if (!right && !left && !top && bottom) return 3;
-    else if (!right && !left && top && !bottom) return 4;
-    else if (!right && !left && top && bottom) return 5;
-    else if (right && left && !top && !bottom) return 6;
-    else if (right && !left && !top && bottom) return 7;
-    else if (right && !left && top && !bottom) return 9;
-    else if (!right && left && !top && bottom) return 8;
-    else if (!right && left && top && !bottom) return 10;
-    else if (right && left && top && !bottom) return 13;
-    else if (right && left && !top && bottom) return 14;
-    else if (!right && left && top && bottom) return 12;
-    else if (right && !left && top && bottom) return 11;
+    if (right && !left && !top && !bottom) {
+      this.addWallBelow();
+      return 10;
+    } else if (!right && left && !top && !bottom) {
+      this.addWallBelow();
+      return 9;
+    } else if (!right && !left && !top && bottom) return 17;
+    else if (!right && !left && top && !bottom) {
+      this.addWallBelow();
+      return 26;
+    } else if (!right && !left && top && bottom) {
+      // if (isCracked) {
+      //   if (oneIn(2)) {
+      //     return 19;
+      //   } else {
+      //     return 4;
+      //   }
+      // }
+      return 16;
+    } else if (right && left && !top && !bottom) {
+      // if (isCracked) {
+      //   return 20;
+      // }
+      this.addWallBelow();
+      return 2;
+    } else if (right && !left && !top && bottom) return 0;
+    else if (right && !left && top && !bottom) {
+      this.addWallBelow();
+      return 24;
+    } else if (!right && left && !top && bottom) return 3;
+    else if (!right && left && top && !bottom) {
+      this.addWallBelow();
+      return 27;
+    } else if (right && left && top && !bottom) {
+      this.addWallBelow();
+      return 25;
+    } else if (right && left && !top && bottom) return 18;
+    else if (!right && left && top && bottom) return 11;
+    else if (right && !left && top && bottom) return 8;
     else if (right && left && top && bottom) {
-      this.isSurrounded = true;
-      return 15;
-    } else return 0;
+      //IS SURROUNDED
+      // return 22;
+      return 1;
+    } else {
+      this.addWallBelow();
+      return 12;
+    }
   };
 
   const { row, col } = this;
@@ -33,25 +62,12 @@ export function autoTile(this: Wall, walls: Map<string, Wall>) {
   const left = walls.get(`${row},${col - 1}`);
   const right = walls.get(`${row},${col + 1}`);
 
-  if (
-    this.row !== this.scene.rowCount - 1 &&
-    (!bottom || bottom.size !== this.size)
-  ) {
-    this.bottomIsFree = true;
-  }
-
   this.setFrame(
     adjacentToTileIndex(
-      this.row === 0 || (top && top.size === this.size) ? true : false,
-      this.row === this.scene.rowCount - 1 ||
-        (bottom && bottom.size === this.size)
-        ? true
-        : false,
-      this.col === 0 || (left && left.size === this.size) ? true : false,
-      this.col === this.scene.colCount - 1 ||
-        (right && right.size === this.size)
-        ? true
-        : false
+      top ? true : false,
+      bottom ? true : false,
+      left ? true : false,
+      right ? true : false
     )
   );
 }

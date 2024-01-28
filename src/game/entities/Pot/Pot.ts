@@ -3,35 +3,45 @@ import { CELL_HEIGHT } from "../../scenes/Main/constants";
 
 export class Pot extends Phaser.GameObjects.Sprite {
   scene: MainScene;
-  row: number;
-  col: number;
+  id: string;
 
-  constructor(scene: MainScene, row: number, col: number) {
-    super(
-      scene,
-      col * CELL_HEIGHT + CELL_HEIGHT / 2,
-      row * CELL_HEIGHT + CELL_HEIGHT / 2,
-      "pots",
-      0
-    );
+  constructor(scene: MainScene, id: string, x: number, y: number) {
+    super(scene, x, y, "pots", 0);
     this.scene = scene;
-    this.row = row;
-    this.col = col;
+    this.id = id;
     this.setOrigin(0.5, 0.5);
     this.setDepth(0);
     this.createAnimation();
     this.scene.add.existing(this);
-    this.scene.potsByPos.set(`${row},${col}`, this);
 
-    this.scene.events.on("clear", () => {
-      this.destroy();
-    });
+    this.scene.events.on(
+      this.id,
+      (type: "remove" | "update" | "hit", x?: number, y?: number) => {
+        switch (type) {
+          case "remove":
+            this.remove();
+            break;
+          case "hit":
+            this.hit();
+            break;
+          case "update":
+            this.update(x ?? 0, y ?? 0);
+            break;
+        }
+      }
+    );
+    this.scene.events.once("clear", this.remove, this);
   }
   remove() {
+    this.scene.events.removeListener(this.id);
+    this.scene.events.removeListener("clear", this.remove, this);
+    this.destroy();
+  }
+  hit() {
     this.anims.play("destroy-pot");
     this.scene.emitter.emitSmoke(this.x, this.y);
     this.on("animationcomplete", () => {
-      this.destroy();
+      this.remove();
     });
   }
   createAnimation() {
@@ -45,5 +55,9 @@ export class Pot extends Phaser.GameObjects.Sprite {
       repeat: 0,
       hideOnComplete: true,
     });
+  }
+  update(x: number, y: number) {
+    this.setPosition(x, y);
+    this.setDepth(2000);
   }
 }

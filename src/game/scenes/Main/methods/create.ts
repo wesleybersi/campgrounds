@@ -10,14 +10,10 @@ import {
   ZOOM_FACTOR,
 } from "../constants.ts";
 import socket from "../../../socket.ts";
-import {
-  oneIn,
-  randomNum,
-  randomPlaceColor,
-} from "../../../utils/helper-functions.ts";
+import { randomPlaceColor } from "../../../utils/helper-functions.ts";
 
-import { Arrow } from "../../../entities/Projectile/Arrow.ts";
-import { Tile } from "../../../entities/Tile/Tile.ts";
+import { ProjectileArrow } from "../../../entities/Projectile/Arrow.ts";
+
 import { Pickup } from "../../../entities/Pickup/Pickup.ts";
 
 import { Hole } from "../../../entities/Hole/Hole.ts";
@@ -25,6 +21,55 @@ import { Stairs } from "../../../entities/Stairs/Stairs.ts";
 import { Spikes } from "../../../entities/Spikes/Spikes.ts";
 import { Pot } from "../../../entities/Pot/Pot.ts";
 import { Torch } from "../../../entities/Torch/Torch.ts";
+
+import { Chest } from "../../../entities/Chest/Chest.ts";
+import { Door } from "../../../entities/Door/Door.ts";
+import { Coin } from "../../../entities/Items/Coin/Coin.ts";
+import ProjectilePot from "../../../entities/Projectile/Pot.ts";
+import { ArrowPickup } from "../../../entities/Items/ArrowPickup/ArrowPickup.ts";
+import { Direction } from "../../../types.ts";
+import { WallBelow } from "../../../entities/WallBelow/WallBelow.ts";
+import { Potion } from "../../../entities/Items/Potion/Potion.ts";
+import { Heart } from "../../../entities/Items/Heart/Heart.ts";
+import { ProjectileSpear } from "../../../entities/Projectile/Spear.ts";
+import { Shooter } from "../../../entities/Shooter/Shooter.ts";
+import { Sign } from "../../../entities/Sign/Sign.ts";
+
+interface EmissionData {
+  type:
+    | "pot"
+    | "spikes"
+    | "chest"
+    | "door"
+    | "projectile-arrow"
+    | "projectile-pot"
+    | "projectile-spear"
+    | "drop-coin"
+    | "drop-potion-red"
+    | "drop-potion-blue"
+    | "drop-potion-green"
+    | "drop-heart"
+    | "drop-key"
+    | "drop-arrow"
+    | "drop-five-arrows";
+  state: string;
+  id: string;
+  row?: number;
+  col?: number;
+  x?: number;
+  y?: number;
+  z?: number;
+  angle?: number;
+  hp?: number;
+  velocity?: number;
+  isOn?: boolean;
+  isOpen?: boolean;
+  isCarry?: boolean;
+  hit?: boolean;
+  flash?: boolean;
+  remove?: boolean;
+  direction: Direction;
+}
 
 export default function create(this: MainScene) {
   this.socket = socket;
@@ -64,11 +109,13 @@ export default function create(this: MainScene) {
       y: number;
       x: number;
       angle: number;
-      weapon: { type: string; tier: string };
+      weapon: { type: string; tier: string } | null;
       height: number;
       width: number;
     }[];
-    matrix: string[][];
+    objectMatrix: string[][];
+    spriteGridMatrix: [string, string][];
+    lastEmissions: [string, EmissionData][];
     tiles: {
       id: number;
       type: "Crate" | "Metal Crate";
@@ -80,6 +127,9 @@ export default function create(this: MainScene) {
       col: number;
       type: string;
     }[];
+    decoration: {
+      torches: { row: number; col: number }[];
+    };
   }
 
   socket.on("Clear", () => {
@@ -89,9 +139,17 @@ export default function create(this: MainScene) {
   socket.on("Initial Floor Data", (data: InitialData) => {
     this.hasLoaded = false;
     this.clear();
-    //ANCHOR Eventually, this is going to be *floor* data
-    console.table(data);
-    const { id, size, players, tiles, matrix, pickups } = data;
+
+    const {
+      id,
+      size,
+      players,
+      tiles,
+      objectMatrix,
+      spriteGridMatrix,
+      lastEmissions: spriteIDMatrix,
+      pickups,
+    } = data;
     this.socketID = id;
     this.rowCount = size.rows;
     this.colCount = size.cols;
@@ -116,15 +174,13 @@ export default function create(this: MainScene) {
       }
     }
 
-    for (const tileData of tiles) {
-      const { id, type, x, y } = tileData;
-      new Tile(this, type, id, x, y);
-    }
-
     for (const pickupData of pickups) {
       const { row, col, type } = pickupData;
       new Pickup(this, row, col, type);
     }
+    // for (const torch of decoration.torches) {
+    //   new Torch(this, torch.row, torch.col);
+    // }
 
     this.boundingBox?.destroy();
     this.boundingBox = this.add.rectangle(
@@ -145,10 +201,7 @@ export default function create(this: MainScene) {
 
     camera.centerOn(this.player.x, this.player.y);
 
-    camera.setDeadzone(
-      camera.worldView.width * 0.75,
-      camera.worldView.height * 0.5
-    );
+    camera.setDeadzone(camera.worldView.width * 4, camera.worldView.height * 4);
     // camera.setLerp(0.1);
     this.deadzoneRect?.destroy();
     this.deadzoneRect = this.add.rectangle(
@@ -164,34 +217,178 @@ export default function create(this: MainScene) {
     //ANCHOR Create walls
     // this.wallsByPos.clear();
 
-    this.matrix = [...matrix];
+    this.objectMatrix = [...objectMatrix];
+    this.spriteGridMatrix = [...spriteGridMatrix];
 
-    matrix.forEach((matrixRow, row) => {
-      matrixRow.forEach((cell, col) => {
-        if (cell.startsWith("stairs")) {
-          new Stairs(this, cell, row, col);
-        } else {
-          switch (cell) {
-            case "floor":
-              break;
-            case "wall":
-              this.tilemap.placeWallTile(col, row);
-              // new Wall(this, row, col, 16);
-              break;
-            case "hole":
-              new Hole(this, row, col);
-              break;
-            case "spikes-on":
-            case "spikes-off":
-              new Spikes(this, cell.endsWith("off") ? "off" : "on", row, col);
-              break;
-            case "pot":
-              new Pot(this, row, col);
-              break;
+    spriteGridMatrix.forEach(([pos, sprite]) => {
+      const position = pos.split(",");
+      const row = Number(position[0]);
+      const col = Number(position[1]);
+
+      switch (sprite) {
+        case "horz-door-open-up":
+        case "horz-door-open-down":
+        case "horz-door-closed":
+        case "horz-door-locked":
+          {
+            const door = new Door(this, "horizontal", row, col, false);
+            if (sprite.includes("open")) {
+              if (sprite.endsWith("left")) door.open("left");
+              else if (sprite.endsWith("right")) door.open("right");
+              else if (sprite.endsWith("up")) door.open("up");
+              else if (sprite.endsWith("down")) door.open("down");
+            }
           }
+          break;
+        case "vert-door-open-left":
+        case "vert-door-open-right":
+        case "vert-door-closed":
+        case "vert-door-locked":
+          {
+            const door = new Door(this, "vertical", row, col, false);
+            if (sprite.includes("open")) {
+              if (sprite.endsWith("left")) door.open("left");
+              else if (sprite.endsWith("right")) door.open("right");
+              else if (sprite.endsWith("up")) door.open("up");
+              else if (sprite.endsWith("down")) door.open("down");
+            }
+          }
+          break;
+        case "chest-silver-open":
+        case "chest-silver-closed":
+        case "chest-gold-open":
+        case "chest-gold-closed":
+          new Chest(
+            this,
+            sprite.includes("silver") ? "silver" : "gold",
+            sprite.includes("open") ? "open" : "closed",
+            row,
+            col
+          );
+          break;
+        case "stairs-up":
+        case "stairs-down":
+          new Stairs(this, sprite, row, col);
+          break;
+        case "shooter-up":
+        case "shooter-down":
+        case "shooter-left":
+        case "shooter-right":
+          new Shooter(this, sprite.slice(8) as Direction, row, col);
+          break;
+        case "sign-rectangle":
+          new Sign(this, row, col);
+          break;
+      }
+    });
+
+    for (const [id, emission] of spriteIDMatrix) {
+      const { x, y } = emission;
+      switch (emission.type) {
+        case "pot":
+          if (x === undefined || y === undefined) break;
+          new Pot(this, id, x, y);
+          break;
+        case "drop-potion-red":
+        case "drop-potion-blue":
+        case "drop-potion-green":
+          new Potion(this, id, emission.type.slice(7), x ?? 0, y ?? 0);
+          break;
+        case "drop-heart":
+          new Heart(this, id, x ?? 0, y ?? 0);
+          break;
+        case "drop-arrow":
+          new ArrowPickup(this, id, x ?? 0, y ?? 0);
+          break;
+        case "drop-five-arrows":
+          new ArrowPickup(this, id, x ?? 0, y ?? 0).setTint(0xff0000);
+          break;
+        case "drop-coin":
+          new Coin(this, id, x ?? 0, y ?? 0);
+          break;
+        case "projectile-arrow":
+        case "projectile-pot":
+        case "projectile-spear": {
+          const { id, state, x, y, z, angle, type, velocity, remove } =
+            emission;
+          if (!this.events.eventNames().includes(id)) {
+            if (type === "projectile-arrow") {
+              new ProjectileArrow(this, id, x ?? 0, y ?? 0, angle ?? 0);
+            } else if (type === "projectile-pot") {
+              new ProjectilePot(this, id, x ?? 0, y ?? 0, z ?? 0, angle ?? 0);
+            } else if (type === "projectile-spear") {
+              new ProjectileSpear(this, id, x ?? 0, y ?? 0, angle ?? 0);
+            }
+          }
+        }
+      }
+    }
+
+    objectMatrix.forEach((matrixRow, row) => {
+      matrixRow.forEach((cell, col) => {
+        switch (cell) {
+          case "floor-0":
+          case "floor-1":
+          case "floor-2":
+          case "floor-3":
+          case "floor-4":
+          case "floor-5":
+          case "floor-6":
+          case "floor-7":
+          case "floor-8":
+          case "floor-9":
+          case "floor-10":
+          case "floor-11":
+          case "floor-12":
+          case "floor-13":
+          case "floor-14":
+          case "floor-15":
+          case "floor-16":
+          case "floor-17":
+          case "floor-18":
+          case "floor-19":
+            this.tilemap.placeEmptyFloorTile(col, row, Number(cell.slice(6)));
+            break;
+          case "wall":
+            // new Wall(this, row, col);
+            this.tilemap.placeWallTile(col, row);
+            break;
+          case "wall-torch":
+            // new Wall(this, row, col);
+            this.tilemap.placeWallTile(col, row);
+            new Torch(this, row, col);
+            break;
+          case "wall-cracks":
+            // new Wall(this, row, col);
+            this.tilemap.placeWallTile(col, row, true);
+            break;
+          case "surrounded-wall":
+            this.tilemap.floor.removeTileAt(col, row);
+            break;
+
+          case "hole":
+            new Hole(this, row, col);
+            break;
+          case "spikes-on":
+          case "spikes-off":
+            new Spikes(this, cell.endsWith("off") ? "off" : "on", row, col);
+            break;
         }
       });
     });
+
+    this.objectMatrix.forEach((row, y) =>
+      row.forEach((cell, x) => {
+        if (cell.includes("wall")) {
+          if (
+            this.objectMatrix[y + 1] &&
+            !this.objectMatrix[y + 1][x].includes("wall")
+          ) {
+            new WallBelow(this, y, x);
+          }
+        }
+      })
+    );
 
     // this.holesByPos.clear();
     // for (const [, hole] of this.holesByPos) {
@@ -206,44 +403,37 @@ export default function create(this: MainScene) {
 
     // for (const [, wall] of this.wallsByPos) {
     //   wall.autotile(this.wallsByPos);
-    //   this.tilemap.floor.removeTileAt(wall.col, wall.row);
+    //   // this.tilemap.floor.removeTileAt(wall.col, wall.row);
     // }
 
-    // for (const [, wall] of this.wallsByPos) {
-    //   if (wall.isSurrounded) wall.remove();
-    // }
+    //TODO Move to server
+    // this.tilemap.walls.forEachTile((tile) => {
+    //   if (tile.index === -1) {
+    //     this.tilemap.walls.removeTileAt(tile.x, tile.y);
+
+    //     this.matrix[tile.y][tile.x] = "surrounded";
+    //   }
+    // });
+    // this.tilemap.walls.forEachTile((tile) => {
+    //   tile.index = autoTile(tile, this.matrix);
+    // });
 
     this.tilemap.floor.forEachTile((tile) => {
+      const wallInPlace = this.tilemap.walls.hasTileAt(tile.x, tile.y);
       const wallAbove = this.tilemap.walls.hasTileAt(tile.x, tile.y - 1);
       const wallToLeft = this.tilemap.walls.hasTileAt(tile.x - 1, tile.y);
-      if (wallAbove || wallToLeft) {
-        tile.tint = 0x475967;
-      }
-    });
-
-    //Torches
-    let currentRowRange = 0;
-    let lastY = 0;
-    const newRange = () => {
-      currentRowRange = Math.max(randomNum(12), 8);
-    };
-    newRange();
-    this.tilemap.walls.forEachTile((wall) => {
-      if (wall.y !== lastY) newRange();
-      lastY = wall.y;
-      if (wall.properties.type === "wall") {
-        const bottom =
-          this.matrix[wall.y + 1] &&
-          this.matrix[wall.y + 1][wall.x] === "floor";
-
-        if (bottom && wall.x % currentRowRange === 0) {
-          new Torch(this, wall.y, wall.x);
-        }
+      if (!wallInPlace && (wallAbove || wallToLeft)) {
+        tile.tint = 0x34393d;
       }
     });
 
     this.hasLoaded = true;
     this.cameras.main.fadeIn();
+    console.log(
+      this.events.eventNames().length,
+      "active events",
+      this.events.eventNames()
+    );
   });
 
   interface GameIntervalData {
@@ -261,11 +451,19 @@ export default function create(this: MainScene) {
       color: number;
       x: number;
       y: number;
+      state: "moving" | "falling" | "swimming";
       angle: number;
-      weapon: { type: string; tier: string; isLoaded: boolean };
+      weapon: {
+        type: string;
+        tier: string;
+        isLoaded: boolean;
+        isAttack?: boolean;
+        position?: string;
+      };
       wasHit?: boolean;
       isDead?: boolean;
     }[];
+    updaters: EmissionData[];
     tiles: {
       id: number;
       type: "Crate" | "Metal Crate";
@@ -291,7 +489,7 @@ export default function create(this: MainScene) {
     }[];
     projectiles: {
       id: number;
-      type: "Arrow";
+      type: "Arrow" | "ThrownPot";
       state: string;
       x: number;
       y: number;
@@ -312,34 +510,120 @@ export default function create(this: MainScene) {
   ];
 
   socket.on("Game State Update", (gameState: GameIntervalData) => {
+    // if (gameState.updaters.length > 0) console.log(gameState.updaters);
+
     if (!this.hasLoaded) return;
-    const {
-      players,
-      tiles,
-      projectiles,
-      pickups,
-      spikes,
-      destroyedPots,
-      tracker,
-    } = gameState;
+    const { players, updaters, pickups, tracker } = gameState;
 
     for (const playerData of players) {
-      const { id, color, x, y, angle, weapon, wasHit, isDead } = playerData;
+      const { id, color, state, x, y, angle, weapon, wasHit, isDead } =
+        playerData;
+
       const player = this.playersByID.get(playerData.id);
       if (!player) {
         new Player(this, id, "", color, weapon, x, y);
       } else {
-        player.update(x, y, angle, weapon, wasHit, isDead);
+        player.update(x, y, state, angle, weapon, wasHit, isDead);
       }
     }
 
-    for (const tileData of tiles) {
-      const { id, x, y, hp } = tileData;
-      const tile = this.tilesById.get(id);
-      if (!tile) {
-        continue;
-      } else {
-        tile.update(x, y, hp);
+    for (const updater of updaters) {
+      switch (updater.type) {
+        case "projectile-arrow":
+        case "projectile-pot":
+        case "projectile-spear":
+          {
+            const { id, state, x, y, z, angle, type, velocity, remove } =
+              updater;
+            if (!this.events.eventNames().includes(id)) {
+              if (type === "projectile-arrow") {
+                new ProjectileArrow(this, id, x ?? 0, y ?? 0, angle ?? 0);
+              } else if (type === "projectile-pot") {
+                new ProjectilePot(this, id, x ?? 0, y ?? 0, z ?? 0, angle ?? 0);
+              } else if (type === "projectile-spear") {
+                new ProjectileSpear(this, id, x ?? 0, y ?? 0, angle ?? 0);
+              }
+            } else {
+              if (remove) {
+                this.events.emit(id, "remove");
+              } else {
+                this.events.emit(id, "update", state, x, y, z, angle, velocity);
+              }
+            }
+          }
+          break;
+        case "spikes":
+          {
+            const { row, col, isOn } = updater;
+
+            this.events.emit(
+              `spikes-${row}-${col}`,
+              isOn ? "turn-on" : "turn-off"
+            );
+          }
+          break;
+        case "drop-coin":
+        case "drop-heart":
+        case "drop-potion-red":
+        case "drop-potion-blue":
+        case "drop-potion-green":
+        case "drop-arrow":
+        case "drop-five-arrows":
+          {
+            const type = updater.type.slice(5);
+            const { id, x, y, flash, remove } = updater;
+            if (typeof id === "number") break;
+
+            if (flash) {
+              this.events.emit(id, "flash");
+            } else if (remove) {
+              this.events.emit(id, "get");
+            } else {
+              if (x === undefined || y === undefined) break;
+              if (type === "coin") new Coin(this, id, x, y);
+              else if (type === "heart") new Heart(this, id, x, y);
+              else if (type === "potion-red") new Potion(this, id, "red", x, y);
+              else if (type === "potion-blue")
+                new Potion(this, id, "blue", x, y);
+              else if (type === "potion-green")
+                new Potion(this, id, "green", x, y);
+              else if (type === "arrow") {
+                new ArrowPickup(this, id, x, y);
+              } else if (type === "five-arrows") {
+                new ArrowPickup(this, id, x, y).setTint(0xff0000);
+              }
+            }
+          }
+          break;
+
+        case "pot":
+          {
+            const { id, x, y, remove, hit } = updater;
+            if (remove) {
+              this.events.emit(id, "remove");
+            } else if (hit) {
+              this.events.emit(id, "hit");
+            } else {
+              this.events.emit(id, "update", x, y);
+            }
+          }
+          break;
+        case "door":
+          {
+            const { row, col, isOpen, direction } = updater;
+            if (isOpen)
+              this.events.emit(`door-${row}-${col}`, "open", direction);
+            else {
+              this.events.emit(`door-${row}-${col}`, "close");
+            }
+          }
+          break;
+        case "chest":
+          {
+            const { row, col, isOpen } = updater;
+            this.events.emit(`chest-${row}-${col}`, isOpen ? "open" : "close");
+          }
+          break;
       }
     }
 
@@ -355,49 +639,25 @@ export default function create(this: MainScene) {
       }
     }
 
-    for (const projectileData of projectiles) {
-      const { id, state, x, y, z, angle, type, velocity } = projectileData;
-      const projectile = this.projectilesById.get(projectileData.id);
-      if (!projectile) {
-        if (type === "Arrow") {
-          new Arrow(this, id, x, y, angle);
-        }
-      } else {
-        projectile.update(state, x, y, z, angle, velocity);
+    if (this.frameCounter % 4 == 0) {
+      this.tilemap.highlightedCells.forEachTile((tile) =>
+        this.tilemap.highlightedCells.removeTileAt(tile.x, tile.y)
+      );
+
+      for (const data of tracker) {
+        const pos = data.key.split(",");
+        const tile = this.tilemap.highlightedCells.putTileAt(
+          0,
+          Number(pos[1]),
+          Number(pos[0])
+        );
+        tile.tint =
+          heatmap[
+            data.amount < heatmap.length ? data.amount : heatmap.length - 1
+          ];
+        tile.alpha = 1;
       }
     }
-
-    for (const spike of spikes) {
-      const { row, col, state } = spike;
-      const spikesInPlace = this.spikesByPos.get(`${row},${col}`);
-      if (!spikesInPlace) continue;
-      spikesInPlace.update(state);
-    }
-
-    for (const pot of destroyedPots) {
-      const { row, col } = pot;
-      const potInPlace = this.potsByPos.get(`${row},${col}`);
-      if (!potInPlace) continue;
-      potInPlace.remove();
-    }
-
-    // this.tilemap.highlightedCells.forEachTile((tile) =>
-    //   this.tilemap.highlightedCells.removeTileAt(tile.x, tile.y)
-    // );
-
-    // for (const data of tracker) {
-    //   const pos = data.key.split(",");
-    //   const tile = this.tilemap.highlightedCells.putTileAt(
-    //     0,
-    //     Number(pos[1]),
-    //     Number(pos[0])
-    //   );
-    //   tile.tint =
-    //     heatmap[
-    //       data.amount < heatmap.length ? data.amount : heatmap.length - 1
-    //     ];
-    //   tile.alpha = 1;
-    // }
   });
 
   this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
@@ -426,7 +686,11 @@ export default function create(this: MainScene) {
         break;
       case "R":
       case "r":
-        this.buttons.r = true;
+        socket.emit("Player Reload");
+        break;
+      case "I":
+      case "i":
+        socket.emit("Player Inventory");
         break;
       case "Shift":
         this.buttons.shift = true;
@@ -539,9 +803,13 @@ export default function create(this: MainScene) {
   this.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
     if (!this.hasLoaded) return;
     switch (event.key) {
+      case "End":
+        this.enableZoom = !this.enableZoom;
+        break;
       case "Home":
         this.cameras.main.zoom = INITIAL_ZOOM;
         break;
+
       case "=":
         if (this.scale.isFullscreen) {
           this.scale.stopFullscreen();
@@ -555,8 +823,7 @@ export default function create(this: MainScene) {
   this.input.on(
     "wheel",
     (pointer: Phaser.Input.Pointer) => {
-      return;
-      if (!this.hasLoaded) return;
+      if (!this.hasLoaded || !this.enableZoom) return;
       const camera = this.cameras.main;
       const prevZoom = camera.zoom;
 
@@ -604,5 +871,5 @@ export default function create(this: MainScene) {
     this
   );
 
-  this.cameras.main.postFX.addVignette(0.5, 0.5, 0.75);
+  this.cameras.main.postFX.addVignette(0.5, 0.5, 0.9);
 }
