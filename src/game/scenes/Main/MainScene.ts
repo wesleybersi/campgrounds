@@ -73,7 +73,7 @@ export default class MainScene extends Phaser.Scene {
     this.cameras.main.stopFollow();
 
     for (const [, player] of this.playersByID) {
-      player.delete();
+      player.remove();
     }
     for (const [, pickup] of this.pickupsByPos) {
       pickup.remove();
@@ -103,8 +103,8 @@ export default class MainScene extends Phaser.Scene {
       this.frameCounter = 0;
     }
     camera.deadzone?.setSize(
-      camera.worldView.width * 0.25,
-      camera.worldView.height * 0.15
+      camera.worldView.width * 0.2,
+      camera.worldView.height * 0.05
     );
 
     if (this.frameCounter === 59) {

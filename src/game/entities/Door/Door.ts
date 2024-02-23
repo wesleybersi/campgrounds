@@ -1,39 +1,57 @@
 import MainScene from "../../scenes/Main/MainScene";
-import { CELL_HEIGHT, CELL_WIDTH } from "../../scenes/Main/constants";
+import {
+  CELL_HEIGHT,
+  CELL_WIDTH,
+  STROKE_COLOR,
+  STROKE_WIDTH,
+} from "../../scenes/Main/constants";
 import { Direction } from "../../types";
 
-export class Door extends Phaser.GameObjects.Sprite {
+export class Door extends Phaser.GameObjects.Container {
   scene: MainScene;
   row: number;
   col: number;
   orientation: "horizontal" | "vertical";
+  direction: Direction;
+  base: Phaser.GameObjects.Rectangle;
+  thickness = 32;
+  // knob: Phaser.GameObjects.Arc;
   constructor(
     scene: MainScene,
     orientation: "horizontal" | "vertical",
+    direction: "up" | "down" | "left" | "right",
     row: number,
     col: number,
     isLocked?: boolean
   ) {
     super(
       scene,
-      col * CELL_HEIGHT + CELL_HEIGHT / 2,
-      orientation === "vertical"
-        ? row * CELL_HEIGHT
-        : row * CELL_HEIGHT + CELL_HEIGHT / 2,
-      isLocked
-        ? "door-locked"
-        : orientation === "horizontal"
-        ? "door-horz"
-        : "door-vert",
-      0
+      orientation === "horizontal"
+        ? col * CELL_WIDTH + CELL_WIDTH
+        : col * CELL_WIDTH + CELL_WIDTH / 2, //x
+      orientation === "horizontal"
+        ? row * CELL_HEIGHT + CELL_HEIGHT / 2
+        : row * CELL_HEIGHT + CELL_HEIGHT
     );
+
     this.scene = scene;
     this.orientation = orientation;
     this.row = row;
     this.col = col;
 
-    this.setOrigin(0.5, 0.5);
-    this.setDepth(4);
+    this.direction = direction;
+    this.base = this.scene.add.rectangle(
+      orientation === "horizontal" ? -CELL_WIDTH : 0,
+      orientation === "horizontal" ? 0 : -CELL_HEIGHT,
+      orientation === "horizontal" ? CELL_WIDTH * 2 : this.thickness,
+      orientation === "horizontal" ? this.thickness : CELL_HEIGHT * 2
+    );
+    this.base.setFillStyle(0x3e2b29);
+    this.base.setStrokeStyle(STROKE_WIDTH, STROKE_COLOR);
+    this.base.setOrigin(0, 0);
+    this.add(this.base);
+
+    this.setDepth(0);
 
     scene.add.existing(this);
 
@@ -45,7 +63,7 @@ export class Door extends Phaser.GameObjects.Sprite {
       ) => {
         switch (type) {
           case "open":
-            if (direction) this.open(direction);
+            this.open();
             break;
           case "close":
             this.close();
@@ -61,39 +79,54 @@ export class Door extends Phaser.GameObjects.Sprite {
     this.scene.events.removeListener(`door-${this.row}-${this.col}`);
     this.destroy();
   }
-  open(direction: Direction) {
-    if (this.orientation === "horizontal") {
-      this.setTexture("door-vert");
-      if (direction === "down") {
-        this.x = this.col * CELL_WIDTH + CELL_WIDTH / 2 - 6;
-        this.y = this.row * CELL_HEIGHT + CELL_HEIGHT / 2 + 2;
-      } else if (direction === "up") {
-        this.x = this.col * CELL_WIDTH + CELL_WIDTH / 2 - 6;
-        this.y = this.row * CELL_HEIGHT + CELL_HEIGHT / 2 - 10;
-      }
-    } else if (this.orientation === "vertical") {
-      if (direction === "left") {
-        this.setScale(-1, 1);
-        this.x = this.col * CELL_WIDTH + CELL_WIDTH / 2 - 6;
-        this.y = this.row * CELL_HEIGHT + CELL_HEIGHT / 2 - 8;
-      } else if (direction === "right") {
-        this.setScale(1);
-        this.x = this.col * CELL_WIDTH + CELL_WIDTH / 2 + 6;
-        this.y = this.row * CELL_HEIGHT + CELL_HEIGHT / 2 - 8;
-      }
-      this.setTexture("door-horz");
+  open() {
+    switch (this.orientation) {
+      case "horizontal":
+        {
+          const targetAngle = this.direction === "up" ? -90 : 90;
+          this.scene.tweens.add({
+            targets: this.base,
+            angle: targetAngle,
+            duration: 250,
+            ease: "Sine.In",
+          });
+        }
+        break;
+      case "vertical":
+        {
+          const targetAngle = this.direction === "left" ? -90 : 90;
+          this.scene.tweens.add({
+            targets: this.base,
+            angle: targetAngle,
+            duration: 250,
+            ease: "Sine.In",
+          });
+        }
+        break;
     }
   }
   close() {
-    if (this.orientation === "horizontal") {
-      this.setTexture("door-horz");
-      this.x = this.col * CELL_WIDTH + CELL_WIDTH / 2;
-      this.y = this.row * CELL_HEIGHT + CELL_HEIGHT / 2;
-    } else if (this.orientation === "vertical") {
-      this.setScale(1);
-      this.x = this.col * CELL_WIDTH + CELL_WIDTH / 2;
-      this.y = this.row * CELL_HEIGHT;
-      this.setTexture("door-vert");
+    switch (this.orientation) {
+      case "horizontal":
+        {
+          this.scene.tweens.add({
+            targets: this.base,
+            angle: 0,
+            duration: 250,
+            ease: "Sine.In",
+          });
+        }
+        break;
+      case "vertical":
+        {
+          this.scene.tweens.add({
+            targets: this.base,
+            angle: 0,
+            duration: 250,
+            ease: "Sine.In",
+          });
+        }
+        break;
     }
   }
 }

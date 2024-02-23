@@ -1,0 +1,22 @@
+.customization {
+  display: flex;
+
+  .title {
+    flex: 1;
+    font-weight: 600;
+  }
+  .buttons {
+    flex: 1;
+    display: flex;
+    gap: 1rem;
+    button {
+      aspect-ratio: 1;
+      border: none;
+      cursor: pointer;
+      &:first-of-type,
+      &:last-of-type {
+        border-radius: 50%;
+      }
+    }
+  }
+}

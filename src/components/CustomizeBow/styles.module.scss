@@ -1,0 +1,15 @@
+.customize {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: var(--bg);
+  padding: 1rem;
+  width: 25rem;
+  gap: 1rem;
+  font-weight: 600;
+  z-index: 10000;
+  cursor: pointer;
+}

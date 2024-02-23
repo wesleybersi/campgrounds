@@ -1,36 +1,57 @@
 import { useEffect, useState } from "react";
 import styles from "./App.module.scss";
 import socket from "./game/socket";
-import Weapon from "./components/Weapon/Weapon";
 
-import { GiPocketBow as IconBow } from "react-icons/gi";
-import { GiCrossbow as IconCrossbow } from "react-icons/gi";
-import { GiSpearFeather as IconSpear } from "react-icons/gi";
-import { LuSword as IconSword } from "react-icons/lu";
-
-import { IconType } from "react-icons";
 import Dialog from "./components/Dialog/Dialog";
 import Status from "./components/Status/Status";
 import Leaderboard from "./components/Leaderboard/Leaderboard";
 import Inventory from "./components/Inventory/Inventory";
 import CurrentFloor from "./components/CurrentFloor/CurrentFloor";
 import Dead from "./components/Dead/Dead";
-import { LargeNumberLike } from "crypto";
+import HotKeys from "./components/HotKeys/HotKeys";
+import Map from "./components/Map/Map";
+import CenterStatus from "./components/CenterStatus/CenterStatus";
+import CustomizeBow from "./components/CustomizeBow/CustomizeBow";
 
+export type InventoryItem = {
+  key: string;
+  durability?: number;
+  amount?: number;
+  stacks?: number;
+};
+
+interface InitialData {
+  id: string;
+  size: {
+    rows: number;
+    cols: number;
+  };
+}
 interface GameData {
   client: {
     name: string;
     health: number;
     gold: number;
     state: string;
+    force: number;
     color: number;
     floor: number;
     secondsAlive: number;
     weaponry: { type: string; tier: string; durability: number }[];
-    weaponIndex: number;
     projectiles: { arrows: number };
-
+    inventory: {
+      itemSlots: (InventoryItem | null)[][];
+      size: { rows: number; cols: number };
+      hotkeys: (InventoryItem | null)[];
+      hotkeyIndex: number;
+      selectedSlot: { row: number; col: number } | null;
+    };
     dialog?: { name: string; text: string[] };
+    bowCustomization: {
+      drawSpeed: number; //0,1,2,3,4
+      velocity: number;
+      accuracy: number;
+    };
   };
 }
 export interface GameIntervalData {
@@ -53,10 +74,22 @@ function UI() {
     floor: number;
     secondsAlive: number;
     color: string;
+    force: number;
     weaponry: { type: string; tier: string; durability: number }[];
-    weaponIndex: number;
     projectiles: { arrows: number };
+    inventory: {
+      itemSlots: (InventoryItem | null)[][];
+      size: { rows: number; cols: number };
+      hotkeys: (InventoryItem | null)[];
+      hotkeyIndex: number;
+      selectedSlot: { row: number; col: number } | null;
+    };
     dialog?: { name: string; text: string[] };
+    bowCustomization: {
+      drawSpeed: number; //0,1,2,3,4
+      velocity: number;
+      accuracy: number;
+    };
   }>({
     health: 100,
     state: "",
@@ -65,10 +98,24 @@ function UI() {
     secondsAlive: 0,
     name: "",
     color: "",
+    force: 0,
     weaponry: [],
-    weaponIndex: 0,
+    inventory: {
+      itemSlots: [],
+      size: { rows: 3, cols: 3 },
+      hotkeys: [null, null, null, null, null],
+      hotkeyIndex: 0,
+      selectedSlot: null,
+    },
     projectiles: { arrows: 0 },
+    bowCustomization: {
+      drawSpeed: 2, //0,1,2,3,4
+      velocity: 2,
+      accuracy: 2,
+    },
   });
+
+  const [isCustomize, setIsCustomize] = useState<boolean>(false);
 
   const [timeRemaining, setTimeRemaining] = useState<number>();
   const [leaderboard, setLeaderboard] = useState<
@@ -82,6 +129,17 @@ function UI() {
   >([]);
 
   useEffect(() => {
+    const keydown = (event: KeyboardEvent) => {
+      if (event.key === "c") {
+        setIsCustomize((prev) => !prev);
+      }
+    };
+    window.addEventListener("keydown", keydown);
+    return () => window.removeEventListener("keydown", keydown);
+  });
+
+  useEffect(() => {
+    // socket.on("Initial Floor Data", (data: InitialData) => {});
     socket.on("Game State Update", (gameData: GameData) => {
       const { client } = gameData;
       setPlayer({
@@ -93,9 +151,11 @@ function UI() {
         color: numericColorToHex(client.color),
         weaponry: client.weaponry,
         secondsAlive: client.secondsAlive,
-        weaponIndex: client.weaponIndex,
         projectiles: client.projectiles,
+        inventory: client.inventory,
+        force: client.force,
         dialog: client.dialog ?? undefined,
+        bowCustomization: client.bowCustomization,
       });
     });
 
@@ -109,7 +169,16 @@ function UI() {
   }, [socket]);
 
   return (
-    <div className={styles.App} style={{ pointerEvents: "none" }}>
+    <div
+      className={styles.App}
+      style={{ pointerEvents: isCustomize ? "all" : "none" }}
+    >
+      <CenterStatus
+        health={player.health}
+        force={player.force * 100}
+        floor={player.floor}
+      />
+      <Map rows={100} cols={150} positions={[]} />
       {/* {currentFloor && (
         <div
           className={styles.floorEntry}
@@ -123,56 +192,69 @@ function UI() {
       {player.dialog && <Dialog dialog={player.dialog} />}
       {player.state === "dead" && <Dead secondsAlive={player.secondsAlive} />}
 
+      {isCustomize && <CustomizeBow customizeBow={player.bowCustomization} />}
+
       <div className={styles.ui}>
-        <Status
+        {/* <Status
           name={player.name}
           color={player.color}
           health={player.health}
           floor={player.floor}
           gold={player.gold}
-        />
+        /> */}
         <Leaderboard leaderboard={leaderboard} />
-        {player.state === "in-inventory" && <Inventory inventory={[]} />}
-        {/* <section className={styles.timer}>
-          <div className={styles.lang}>
-            <img src={IconNL} alt="NL" />
+        {player.state === "in-inventory" && (
+          <Inventory
+            itemSlots={player.inventory.itemSlots}
+            size={player.inventory.size}
+            selectedSlot={player.inventory.selectedSlot}
+          />
+        )}
+        {/* <HotKeys
+          items={player.inventory.hotkeys}
+          hotkeyIndex={player.inventory.hotkeyIndex}
+        /> */}
+
+        <section className={styles.weaponstatus}>
+          {/* <div className={styles.force}>
+            <div
+              className={styles.weaponforce}
+              style={{
+                height: `${player.force * 100}%`,
+                background: "#C12804",
+              }}
+              // style={{ height: "100%" }}
+            ></div>
+          </div> */}
+          <div
+            className={styles.weapon}
+            style={{
+              border:
+                player.inventory.hotkeyIndex === 0 ? "white 2px solid" : "",
+            }}
+          >
+            {player.inventory.hotkeys[0]?.key}
           </div>
-
-          <div className={styles.time}></div>
-          <div className={styles.left}>
-            <IconUsers size="24px" />
+          <div
+            className={styles.weapon}
+            style={{
+              border:
+                player.inventory.hotkeyIndex === 1 ? "white 2px solid" : "",
+            }}
+          >
+            {player.inventory.hotkeys[1]?.key}
           </div>
-        </section> */}
-
-        <CurrentFloor floor={player.floor} />
-
-        <section className={styles.weaponry}>
-          {player.weaponry
-            .slice(0, 4)
-            .map(({ type, tier, durability }, index) => {
-              let icon: IconType = IconBow;
-              if (type === "Bow") {
-                icon = IconBow;
-              } else if (type === "Crossbow") {
-                icon = IconCrossbow;
-              } else if (type === "Spear") {
-                icon = IconSpear;
-              } else if (type === "Sword") {
-                icon = IconSword;
-              }
-              return (
-                <Weapon
-                  index={index + 1}
-                  type={type}
-                  tier={tier}
-                  durability={durability}
-                  icon={icon}
-                  isSelected={player.weaponIndex === index}
-                />
-              );
-            })}
+          <div className={styles.projectiles}>
+            <div className={styles.projectile}>{player.projectiles.arrows}</div>
+            <div className={styles.projectile}></div>
+            <div className={styles.projectile}></div>
+            <div className={styles.projectile}></div>
+            {/* <div className={styles.projectile}></div> */}
+            {/* <div className={styles.projectile}></div> */}
+          </div>
         </section>
-        <section className={styles.quiver}>
+
+        {/* <section className={styles.quiver}>
           <div
             style={{
               color:
@@ -183,7 +265,7 @@ function UI() {
           >
             {player.projectiles.arrows}
           </div>
-        </section>
+        </section> */}
       </div>
 
       {/* <Game /> */}

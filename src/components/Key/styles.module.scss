@@ -1,4 +1,4 @@
-.weapon {
+.item {
   width: 4.5rem;
   height: 4.5rem;
   transition: all 128ms ease;
@@ -16,6 +16,7 @@
     rgba(50, 50, 93, 0.25) 0px 50px 100px -20px,
     rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;
 
+  position: relative;
   * {
     text-align: center;
   }
@@ -36,13 +37,13 @@
     font-size: 0.65rem;
   }
   .durability {
-    display: block;
     width: 0.75rem;
     height: 100%;
-
     position: absolute;
+
     left: 0;
     background: rgba(255, 255, 255, 0.1);
+
     .current {
       display: block;
       width: 100%;

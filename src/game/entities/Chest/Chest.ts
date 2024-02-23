@@ -24,6 +24,7 @@ export class Chest extends Phaser.GameObjects.Sprite {
     this.row = row;
     this.col = col;
     this.tier = tier;
+
     this.setOrigin(0.5, 0.5);
     this.setDepth(4);
     this.createAnimation();

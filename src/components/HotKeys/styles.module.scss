@@ -1,0 +1,11 @@
+.hotkeys {
+  position: absolute;
+  bottom: var(--pad);
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  height: 5.25rem;
+}

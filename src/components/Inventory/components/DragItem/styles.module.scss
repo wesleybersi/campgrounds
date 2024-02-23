@@ -9,5 +9,7 @@
   //     rgba(0, 0, 0, 0.3) 0px 30px 60px -30px;
   //   backdrop-filter: blur(4px);
   cursor: pointer;
+  z-index: 1000;
   position: absolute;
+  border: red 2px solid;
 }

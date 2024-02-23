@@ -1,21 +1,24 @@
+import { getAngleOffset } from "../../utils/helper-functions";
 import { Player } from "../Player/player";
 
 export class Crossbow extends Phaser.GameObjects.Sprite {
-  type = "Crossbow";
+  key: string;
   player: Player;
-  constructor(player: Player, tier: string) {
+  constructor(player: Player, key: string) {
     super(player.scene, 0.5, 0.5, "crossbow");
     this.player = player;
-    this.setScale(0.075);
+    this.key = key;
+    this.setScale(0.8);
     this.scene.add.existing(this);
 
     this.scene.events.once("clear", this.remove, this);
   }
-  update(x: number, y: number, angle: number, depth: number) {
+  update(x: number, y: number, angle: number) {
+    const offset = 32;
+    const { x: newX, y: newY } = getAngleOffset(x, y, angle, offset);
     this.setAngle(angle);
-    this.setDepth(depth);
-    this.setOrigin(0.35, 0.35);
-    this.setPosition(x, y);
+    this.setOrigin(0.35);
+    this.setPosition(newX, newY);
   }
   attack() {}
   remove() {

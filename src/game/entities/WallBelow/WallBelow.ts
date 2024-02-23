@@ -22,6 +22,7 @@ export class WallBelow extends Phaser.GameObjects.Image {
     this.setTint(0x898e8f);
 
     this.scene.events.once("clear", this.remove, this);
+    this.remove();
   }
   remove() {
     this.scene.events.removeListener("clear", this.remove, this);

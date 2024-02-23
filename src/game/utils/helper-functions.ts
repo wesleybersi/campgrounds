@@ -216,3 +216,18 @@ export function getAngleOffset(
 export function randomNumInRange(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
+
+export function getRandomInt(min: number, max?: number): number {
+  // If only one argument is provided, assume the range is from 1 to that value
+  if (max === undefined) {
+    max = min;
+    min = 0;
+  }
+
+  // Ensure that min and max are integers
+  min = Math.ceil(min);
+  max = Math.floor(max);
+
+  // Generate a random integer within the specified range
+  return Math.floor(Math.random() * (max - min)) + min;
+}

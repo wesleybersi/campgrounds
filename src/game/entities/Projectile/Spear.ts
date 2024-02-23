@@ -22,7 +22,7 @@ export class ProjectileSpear extends Phaser.GameObjects.Sprite {
     this.setOrigin(0.5, 0.5);
 
     this.shadow = this.scene.add.sprite(this.x, this.y, "spear", 0);
-    this.shadow.setScale(1);
+    this.shadow.setScale(8);
     this.shadow.setTint(0x222222);
     this.shadow.setOrigin(0.5, 0.5);
     this.shadow.setAlpha(0.25);

@@ -28,7 +28,8 @@ const Game = () => {
       parent: "phaser-game",
       // backgroundColor: "#001111",
       // backgroundColor: "#1A1217",
-      backgroundColor: "#12171A",
+      backgroundColor: "#613524",
+      // backgroundColor: "0x1e1c23",
       // backgroundColor: "#2E4C5B",
       // backgroundColor: "#1B262F",
       // backgroundColor: "#afafaf",
@@ -36,7 +37,7 @@ const Game = () => {
       scene: [LandingScene, MainScene, LoadingScene],
       render: {
         antialias: true,
-        pixelArt: true,
+        pixelArt: false,
         roundPixels: true,
       },
     };

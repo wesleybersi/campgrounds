@@ -1,5 +1,9 @@
 import MainScene from "../MainScene";
 
+import grassTile from "../../../assets/images/tiles/grass_128.png";
+import whiteTile from "../../../assets/images/tiles/white_tile_128.png";
+import particle from "../../../assets/images/tiles/particle.png";
+
 import floorTilesGrey from "../../../assets/images/rogue/floor-a.png";
 import wallTilesGrey from "../../../assets/images/rogue/walls-lo.png";
 import crate from "../../../assets/images/rogue/crate.png";
@@ -13,13 +17,13 @@ import wallTilesNoBottomGrey from "../../../assets/images/rogue/walls-a-nobottom
 import circle from "../../../assets/images/tilesets/circle.png";
 import spikes from "../../../assets/images/rogue/floor-spikes.png";
 import signs from "../../../assets/images/rogue/signs.png";
-import arrow from "../../../assets/images/rogue/items/arrow.png";
+import arrow from "../../../assets/images/tilesets/arrow_128.png";
 import bow from "../../../assets/images/tilesets/bow.png";
 import light64 from "../../../assets/images/rogue/light-64.png.png";
 import doorHorz from "../../../assets/images/rogue/door-horz.png";
 import doorVert from "../../../assets/images/rogue/door-vert.png";
 import doorLocked from "../../../assets/images/rogue/door-locked.png";
-import particle from "../../../assets/images/tilesets/particle.png";
+
 import crossbow from "../../../assets/images/tilesets/weapons/crossbow.png";
 
 import torch from "../../../assets/images/rogue/torch.png";
@@ -128,6 +132,11 @@ export default function preload(this: MainScene) {
     frameHeight: 16,
   });
 
+  this.load.spritesheet("white-tile", whiteTile, {
+    frameWidth: 128,
+    frameHeight: 128,
+  });
+
   this.load.spritesheet("torch", torch, {
     frameWidth: CELL_WIDTH,
     frameHeight: CELL_HEIGHT,
@@ -163,6 +172,7 @@ export default function preload(this: MainScene) {
     frameHeight: 265,
   });
 
+  this.load.image("particle", particle);
   this.load.image("crate", crate);
   this.load.image("door-horz", doorHorz);
   this.load.image("door-vert", doorVert);

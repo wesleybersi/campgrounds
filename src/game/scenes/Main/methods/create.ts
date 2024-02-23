@@ -34,9 +34,14 @@ import { Heart } from "../../../entities/Items/Heart/Heart.ts";
 import { ProjectileSpear } from "../../../entities/Projectile/Spear.ts";
 import { Shooter } from "../../../entities/Shooter/Shooter.ts";
 import { Sign } from "../../../entities/Sign/Sign.ts";
+import { ProjectileBoomerang } from "../../../entities/Projectile/Boomerang.ts";
 
 interface EmissionData {
   type:
+    | "crate-small"
+    | "crate-big"
+    | "crate-small-explosive"
+    | "crate-big-explosive"
     | "pot"
     | "spikes"
     | "chest"
@@ -44,6 +49,7 @@ interface EmissionData {
     | "projectile-arrow"
     | "projectile-pot"
     | "projectile-spear"
+    | "projectile-boomerang"
     | "drop-coin"
     | "drop-potion-red"
     | "drop-potion-blue"
@@ -56,6 +62,7 @@ interface EmissionData {
   id: string;
   row?: number;
   col?: number;
+  color?: number;
   x?: number;
   y?: number;
   z?: number;
@@ -109,7 +116,7 @@ export default function create(this: MainScene) {
       y: number;
       x: number;
       angle: number;
-      weapon: { type: string; tier: string } | null;
+      weapon: { key: string } | null;
       height: number;
       width: number;
     }[];
@@ -164,7 +171,7 @@ export default function create(this: MainScene) {
         player.id,
         player.name,
         player.color,
-        player.weapon,
+        player.weapon?.key ?? "",
         player.y,
         player.x
       );
@@ -228,29 +235,39 @@ export default function create(this: MainScene) {
       switch (sprite) {
         case "horz-door-open-up":
         case "horz-door-open-down":
-        case "horz-door-closed":
+        case "horz-door-closed-up":
+        case "horz-door-closed-down":
         case "horz-door-locked":
           {
-            const door = new Door(this, "horizontal", row, col, false);
+            if (
+              sprite === "horz-door-closed-up" &&
+              spriteGridMatrix[row] &&
+              spriteGridMatrix[row][col - 1] === "horz-door-closed-up"
+            ) {
+              break;
+            }
+
+            const door = new Door(this, "horizontal", "up", row, col, false);
             if (sprite.includes("open")) {
-              if (sprite.endsWith("left")) door.open("left");
-              else if (sprite.endsWith("right")) door.open("right");
-              else if (sprite.endsWith("up")) door.open("up");
-              else if (sprite.endsWith("down")) door.open("down");
+              if (sprite.endsWith("left")) door.open();
+              else if (sprite.endsWith("right")) door.open();
+              else if (sprite.endsWith("up")) door.open();
+              else if (sprite.endsWith("down")) door.open();
             }
           }
           break;
         case "vert-door-open-left":
         case "vert-door-open-right":
-        case "vert-door-closed":
+        case "vert-door-closed-left":
+        case "vert-door-closed-right":
         case "vert-door-locked":
           {
-            const door = new Door(this, "vertical", row, col, false);
+            const door = new Door(this, "vertical", "up", row, col, false);
             if (sprite.includes("open")) {
-              if (sprite.endsWith("left")) door.open("left");
-              else if (sprite.endsWith("right")) door.open("right");
-              else if (sprite.endsWith("up")) door.open("up");
-              else if (sprite.endsWith("down")) door.open("down");
+              if (sprite.endsWith("left")) door.open();
+              else if (sprite.endsWith("right")) door.open();
+              else if (sprite.endsWith("up")) door.open();
+              else if (sprite.endsWith("down")) door.open();
             }
           }
           break;
@@ -258,13 +275,13 @@ export default function create(this: MainScene) {
         case "chest-silver-closed":
         case "chest-gold-open":
         case "chest-gold-closed":
-          new Chest(
-            this,
-            sprite.includes("silver") ? "silver" : "gold",
-            sprite.includes("open") ? "open" : "closed",
-            row,
-            col
-          );
+          // new Chest(
+          //   this,
+          //   sprite.includes("silver") ? "silver" : "gold",
+          //   sprite.includes("open") ? "open" : "closed",
+          //   row,
+          //   col
+          // );
           break;
         case "stairs-up":
         case "stairs-down":
@@ -283,11 +300,23 @@ export default function create(this: MainScene) {
     });
 
     for (const [id, emission] of spriteIDMatrix) {
+      if (emission.remove) continue;
       const { x, y } = emission;
       switch (emission.type) {
-        case "pot":
+        case "crate-small":
+        case "crate-big":
+        case "crate-small-explosive":
+        case "crate-big-explosive":
           if (x === undefined || y === undefined) break;
-          new Pot(this, id, x, y);
+          new Pot(
+            this,
+            id,
+            x,
+            y,
+            emission.type === "crate-big" ||
+              emission.type === "crate-big-explosive",
+            emission.type.endsWith("explosive")
+          );
           break;
         case "drop-potion-red":
         case "drop-potion-blue":
@@ -308,16 +337,33 @@ export default function create(this: MainScene) {
           break;
         case "projectile-arrow":
         case "projectile-pot":
+        case "projectile-boomerang":
         case "projectile-spear": {
-          const { id, state, x, y, z, angle, type, velocity, remove } =
+          const { id, state, x, y, z, angle, type, velocity, remove, color } =
             emission;
           if (!this.events.eventNames().includes(id)) {
             if (type === "projectile-arrow") {
-              new ProjectileArrow(this, id, x ?? 0, y ?? 0, angle ?? 0);
+              new ProjectileArrow(
+                this,
+                id,
+                x ?? 0,
+                y ?? 0,
+                angle ?? 0,
+                color ?? 0
+              );
             } else if (type === "projectile-pot") {
               new ProjectilePot(this, id, x ?? 0, y ?? 0, z ?? 0, angle ?? 0);
             } else if (type === "projectile-spear") {
               new ProjectileSpear(this, id, x ?? 0, y ?? 0, angle ?? 0);
+            } else if (type === "projectile-boomerang") {
+              new ProjectileArrow(
+                this,
+                id,
+                x ?? 0,
+                y ?? 0,
+                angle ?? 0,
+                color ?? 0
+              );
             }
           }
         }
@@ -367,7 +413,8 @@ export default function create(this: MainScene) {
             break;
 
           case "hole":
-            new Hole(this, row, col);
+            this.tilemap.placeWaterTile(col, row);
+            // new Hole(this, row, col);
             break;
           case "spikes-on":
           case "spikes-off":
@@ -418,14 +465,14 @@ export default function create(this: MainScene) {
     //   tile.index = autoTile(tile, this.matrix);
     // });
 
-    this.tilemap.floor.forEachTile((tile) => {
-      const wallInPlace = this.tilemap.walls.hasTileAt(tile.x, tile.y);
-      const wallAbove = this.tilemap.walls.hasTileAt(tile.x, tile.y - 1);
-      const wallToLeft = this.tilemap.walls.hasTileAt(tile.x - 1, tile.y);
-      if (!wallInPlace && (wallAbove || wallToLeft)) {
-        tile.tint = 0x34393d;
-      }
-    });
+    // this.tilemap.floor.forEachTile((tile) => {
+    //   const wallInPlace = this.tilemap.walls.hasTileAt(tile.x, tile.y);
+    //   const wallAbove = this.tilemap.walls.hasTileAt(tile.x, tile.y - 1);
+    //   const wallToLeft = this.tilemap.walls.hasTileAt(tile.x - 1, tile.y);
+    //   if (!wallInPlace && (wallAbove || wallToLeft)) {
+    //     tile.tint = 0x565e6a;
+    //   }
+    // });
 
     this.hasLoaded = true;
     this.cameras.main.fadeIn();
@@ -453,13 +500,13 @@ export default function create(this: MainScene) {
       y: number;
       state: "moving" | "falling" | "swimming";
       angle: number;
+      force: number;
       weapon: {
-        type: string;
-        tier: string;
+        key: string;
         isLoaded: boolean;
         isAttack?: boolean;
         position?: string;
-      };
+      } | null;
       wasHit?: boolean;
       isDead?: boolean;
     }[];
@@ -516,14 +563,14 @@ export default function create(this: MainScene) {
     const { players, updaters, pickups, tracker } = gameState;
 
     for (const playerData of players) {
-      const { id, color, state, x, y, angle, weapon, wasHit, isDead } =
+      const { id, color, state, x, y, angle, force, weapon, wasHit, isDead } =
         playerData;
 
       const player = this.playersByID.get(playerData.id);
       if (!player) {
-        new Player(this, id, "", color, weapon, x, y);
+        new Player(this, id, "", color, weapon?.key ?? "", x, y);
       } else {
-        player.update(x, y, state, angle, weapon, wasHit, isDead);
+        player.update(x, y, state, angle, force, weapon, wasHit, isDead);
       }
     }
 
@@ -532,16 +579,33 @@ export default function create(this: MainScene) {
         case "projectile-arrow":
         case "projectile-pot":
         case "projectile-spear":
+        case "projectile-boomerang":
           {
-            const { id, state, x, y, z, angle, type, velocity, remove } =
+            const { id, state, x, y, z, angle, type, velocity, remove, color } =
               updater;
             if (!this.events.eventNames().includes(id)) {
               if (type === "projectile-arrow") {
-                new ProjectileArrow(this, id, x ?? 0, y ?? 0, angle ?? 0);
+                new ProjectileArrow(
+                  this,
+                  id,
+                  x ?? 0,
+                  y ?? 0,
+                  angle ?? 0,
+                  color ?? 0
+                );
               } else if (type === "projectile-pot") {
                 new ProjectilePot(this, id, x ?? 0, y ?? 0, z ?? 0, angle ?? 0);
               } else if (type === "projectile-spear") {
                 new ProjectileSpear(this, id, x ?? 0, y ?? 0, angle ?? 0);
+              } else if (type === "projectile-boomerang") {
+                new ProjectileBoomerang(
+                  this,
+                  id,
+                  x ?? 0,
+                  y ?? 0,
+                  angle ?? 0,
+                  color ?? 0
+                );
               }
             } else {
               if (remove) {
@@ -595,8 +659,10 @@ export default function create(this: MainScene) {
             }
           }
           break;
-
-        case "pot":
+        case "crate-small":
+        case "crate-big":
+        case "crate-small-explosive":
+        case "crate-big-explosive":
           {
             const { id, x, y, remove, hit } = updater;
             if (remove) {
@@ -690,7 +756,7 @@ export default function create(this: MainScene) {
         break;
       case "I":
       case "i":
-        socket.emit("Player Inventory");
+        socket.emit("Toggle Inventory");
         break;
       case "Shift":
         this.buttons.shift = true;
@@ -749,7 +815,7 @@ export default function create(this: MainScene) {
       case "[":
         if (event.repeat) return;
         this.tilemap.highlightedCells.setAlpha(
-          this.tilemap.highlightedCells.alpha === 0.35 ? 0 : 0.35
+          this.tilemap.highlightedCells.alpha > 0 ? 0 : 0.25
         );
         break;
     }
@@ -871,5 +937,5 @@ export default function create(this: MainScene) {
     this
   );
 
-  this.cameras.main.postFX.addVignette(0.5, 0.5, 0.9);
+  // this.cameras.main.postFX.addVignette(0.5, 0.5, 0.9);
 }

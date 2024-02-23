@@ -9,9 +9,11 @@ const useMousePosition = () => {
 
   useEffect(() => {
     window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("dragover", handleMouseMove);
 
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("dragover", handleMouseMove);
     };
   }, []);
 

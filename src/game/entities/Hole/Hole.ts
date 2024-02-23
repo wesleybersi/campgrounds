@@ -1,7 +1,8 @@
+import { CELL_WIDTH } from "./../../scenes/Main/constants";
 import MainScene from "../../scenes/Main/MainScene";
 import { CELL_HEIGHT } from "../../scenes/Main/constants";
 
-export class Hole extends Phaser.GameObjects.Image {
+export class Hole extends Phaser.GameObjects.Rectangle {
   scene: MainScene;
 
   row: number;
@@ -15,8 +16,9 @@ export class Hole extends Phaser.GameObjects.Image {
       scene,
       col * CELL_HEIGHT + CELL_HEIGHT / 2,
       row * CELL_HEIGHT + CELL_HEIGHT / 2,
-      "holes",
-      0
+      CELL_WIDTH,
+      CELL_HEIGHT,
+      0x2f7ca9
     );
     this.scene = scene;
     this.row = row;
@@ -24,14 +26,14 @@ export class Hole extends Phaser.GameObjects.Image {
     this.setOrigin(0.5, 0.5);
     this.setDepth(0);
     this.scene.add.existing(this);
-    this.setTint(0x000000);
-    if (
-      this.scene.objectMatrix[row - 1] &&
-      this.scene.objectMatrix[row - 1][col] !== "hole"
-    ) {
-      this.wallBelow = this.scene.add.image(this.x, this.y - 4, "wall-below");
-      this.wallBelow.setTint(0x454a4d);
-    }
+
+    // if (
+    //   this.scene.objectMatrix[row - 1] &&
+    //   this.scene.objectMatrix[row - 1][col] !== "hole"
+    // ) {
+    //   this.wallBelow = this.scene.add.image(this.x, this.y - 4, "wall-below");
+    //   this.wallBelow.setTint(0x454a4d);
+    // }
 
     this.scene.events.once("clear", this.remove, this);
   }
