@@ -1,62 +1,63 @@
 import Phaser from "phaser";
-import { Player } from "../../entities/Player/player";
+
 import preload from "./methods/preload";
-import create from "./methods/create";
-import BasicTilemap from "../../entities/Tilemap/tilemap";
+import create from "./methods/create/create";
+import BasicTilemap from "./entities/Grid/entities/Tilemap/tilemap";
 import LoadingScene from "../Loading/LoadingScene";
-import { Socket } from "socket.io-client";
-import { Direction } from "../../types";
 
-import { CELL_HEIGHT, CELL_WIDTH, INITIAL_RESPAWN_COUNTER } from "./constants";
-import Emitter from "../../entities/Emitter/Emitter";
-import { ProjectileArrow } from "../../entities/Projectile/Arrow";
-
-import { Pickup } from "../../entities/Pickup/Pickup";
-import { Wall } from "../../entities/Wall/wall";
-
-import { Pot } from "../../entities/Pot/Pot";
-
-import ProjectilePot from "../../entities/Projectile/Pot";
-
-export type Projectile = ProjectileArrow | ProjectilePot;
+import { CELL_SIZE } from "./constants";
+import update from "./methods/update";
+import { pointerEvents } from "./entities/Client/events/pointer";
+import { keyboardEvents } from "./entities/Client/events/keyboard";
+import { Client } from "./entities/Client/Client";
+import { Grid } from "./entities/Grid/Grid";
+import { Builder } from "./entities/Labour/force/Builder/Builder";
+import { Labour } from "./entities/Labour/Labour";
+import { Agent } from "./entities/Agent/Agent";
+import { Recreation } from "./entities/Recreation/Recreation";
+import { NightOverlay } from "./entities/NightOverlay";
 
 export default class MainScene extends Phaser.Scene {
-  socket!: Socket;
-  socketID!: string;
   hasLoaded = false;
-  deadzoneRect!: Phaser.GameObjects.Rectangle;
-  tilemap!: BasicTilemap;
+  client!: Client;
+  grid!: Grid;
+  // tilemap!: BasicTilemap;
   loadingScene!: LoadingScene;
   loadingMessage = "";
-  rowCount!: number;
-  colCount!: number;
-  isBot = false;
-  respawnCounter = INITIAL_RESPAWN_COUNTER;
-  emitter: Emitter = new Emitter(this);
-  enableZoom = false;
+  rowCount: number;
+  colCount: number;
+  width: number;
+  height: number;
+
+  allAgents = new Set<Agent>();
+  labour!: Labour;
+  recreation!: Recreation;
 
   //Controls
   buttons = { shift: false, r: false };
-  cursors: Direction[] = [];
 
   //Players
-  player!: Player;
-  boundingBox!: Phaser.GameObjects.Rectangle;
-  playersByID = new Map<string, Player>();
 
-  //Pots
-  potsByPos = new Map<string, Pot>();
+  // boundingBox!: Phaser.GameObjects.Rectangle;
 
   //Matrix
   objectMatrix: string[][] = [];
   spriteGridMatrix: string[][] = []; // <row,col, sprite>
 
-  //Pickups
-  pickupsByPos = new Map<string, Pickup>();
-
   stateText!: Phaser.GameObjects.Text;
   frameCounter = 0;
-  hover: {
+  delta!: number;
+  gameSpeed = 1;
+  gameSpeedValues = [0, 1, 2, 4];
+
+  currentDay = 1;
+  isEvening = false;
+  // framesPerDay = 1000;
+  // framesPerDay = 18000;
+  framesPerDay = 5000;
+  timeOfDay = 0;
+
+  target: {
     row: number;
     col: number;
     x: number;
@@ -65,82 +66,53 @@ export default class MainScene extends Phaser.Scene {
   //External Methods
   preload = preload;
   create = create;
+  update = update;
+
+  //Events
+  pointerEvents = pointerEvents;
+  keyboardEvents = keyboardEvents;
+
   constructor() {
     super({ key: "Main" });
+    this.rowCount = 175;
+    this.colCount = 275;
+    this.width = this.colCount * CELL_SIZE;
+    this.height = this.rowCount * CELL_SIZE;
   }
   clear() {
     this.events.emit("clear");
     this.cameras.main.stopFollow();
-
-    for (const [, player] of this.playersByID) {
-      player.remove();
-    }
-    for (const [, pickup] of this.pickupsByPos) {
-      pickup.remove();
-    }
-
-    this.playersByID.clear();
-    this.pickupsByPos.clear();
     this.cameras.main.fadeOut();
   }
-  isInViewport(x: number, y: number) {
-    const { left, right, top, bottom } = this.cameras.main.worldView;
-    if (
-      x < left - CELL_WIDTH ||
-      x > right + CELL_WIDTH ||
-      y < top - CELL_HEIGHT ||
-      y > bottom + CELL_HEIGHT
-    ) {
-      return false;
-    } else return true;
+  setSpeed(index: number) {
+    this.gameSpeed = this.gameSpeedValues[index];
+  }
+  increaseSpeed() {
+    let index = this.gameSpeedValues.indexOf(this.gameSpeed);
+    if (index === this.gameSpeedValues.length - 1) {
+      index = 0;
+    } else {
+      index++;
+    }
+    this.gameSpeed = this.gameSpeedValues[index];
+  }
+  decreaseSpeed() {
+    let index = this.gameSpeedValues.indexOf(this.gameSpeed);
+    if (index === 0) {
+      index = this.gameSpeedValues.length - 1;
+    } else {
+      index--;
+    }
+    this.gameSpeed = this.gameSpeedValues[index];
   }
 
-  update() {
-    if (!this.hasLoaded) return;
-    const camera = this.cameras.main;
-    this.frameCounter++;
-    if (this.frameCounter % 60 === 0) {
-      this.frameCounter = 0;
-    }
-    camera.deadzone?.setSize(
-      camera.worldView.width * 0.2,
-      camera.worldView.height * 0.05
+  isInViewport(x: number, y: number) {
+    const { left, right, top, bottom } = this.cameras.main.worldView;
+    return !(
+      x < left - CELL_SIZE ||
+      x > right + CELL_SIZE ||
+      y < top - CELL_SIZE ||
+      y > bottom + CELL_SIZE
     );
-
-    if (this.frameCounter === 59) {
-      camera.setLerp(0.1);
-    }
-    if (this.deadzoneRect && camera.deadzone) {
-      this.deadzoneRect.x = camera.deadzone.x + camera.deadzone.width / 2;
-      this.deadzoneRect.y = camera.deadzone.y + camera.deadzone.height / 2;
-      this.deadzoneRect.width = camera.deadzone.width;
-      this.deadzoneRect.height = camera.deadzone.height;
-      this.deadzoneRect.setDepth(2000);
-      this.deadzoneRect.setOrigin(0.5);
-      this.deadzoneRect.setAlpha(0);
-    }
-
-    // if (this.buttons.r) {
-    //   this.respawnCounter--;
-    //   if (this.respawnCounter === 0) {
-    //     this.respawnCounter = INITIAL_RESPAWN_COUNTER;
-    //     this.buttons.r = false;
-    //     this.socket.emit(
-    //       "Position Request",
-    //       randomNum(this.rowCount),
-    //       randomNum(this.colCount)
-    //     );
-    //   }
-    // }
-
-    this.boundingBox.setPosition(this.player.x, this.player.y);
-
-    // this.stateText?.destroy();
-    // this.stateText = this.add.text(
-    //   camera.worldView.right - CELL_WIDTH * 15,
-    //   camera.worldView.bottom - CELL_HEIGHT,
-    //   `${this.goto?.row},${this.goto?.col}`
-    // );
-    // this.stateText.setDepth(200);
   }
 }

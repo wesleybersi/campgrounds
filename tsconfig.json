@@ -21,7 +21,7 @@
   },
   "include": [
     "src",
-    "src/game/entities/.ts",
+    "src/game/scenes/Main/entities/.ts",
     "../server/src/entities/Game/Scrabble/Validator/Dictionary/dictionaries"
   ],
   "references": [{ "path": "./tsconfig.node.json" }]

@@ -8,7 +8,7 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
 
   <>
     <Game />
-    <UI />
+    {/* <UI /> */}
   </>
   // </React.StrictMode>
 );

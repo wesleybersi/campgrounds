@@ -1,4 +1,4 @@
-import { Cardinal, Direction } from "../types";
+import { Cardinal, Direction, Vector } from "../types";
 
 export function getOppositeSide(cardinal: Cardinal) {
   const oppositeMap: { [key: string]: Cardinal } = {
@@ -230,4 +230,58 @@ export function getRandomInt(min: number, max?: number): number {
 
   // Generate a random integer within the specified range
   return Math.floor(Math.random() * (max - min)) + min;
+}
+
+export function createUniqueId() {
+  const timestamp = Date.now().toString(36);
+  const randomPart = Math.random().toString(36).substr(2, 9);
+  return `id-${timestamp}-${randomPart}`;
+}
+
+export function interpolateCatmullRom(
+  p0: Vector,
+  p1: Vector,
+  p2: Vector,
+  p3: Vector,
+  t: number
+): Vector {
+  const t2 = t * t;
+  const t3 = t2 * t;
+  const v: Vector = {
+    x:
+      0.5 *
+      (2 * p1.x +
+        (-p0.x + p2.x) * t +
+        (2 * p0.x - 5 * p1.x + 4 * p2.x - p3.x) * t2 +
+        (-p0.x + 3 * p1.x - 3 * p2.x + p3.x) * t3),
+    y:
+      0.5 *
+      (2 * p1.y +
+        (-p0.y + p2.y) * t +
+        (2 * p0.y - 5 * p1.y + 4 * p2.y - p3.y) * t2 +
+        (-p0.y + 3 * p1.y - 3 * p2.y + p3.y) * t3),
+  };
+  return v;
+}
+
+// Smooth the path using Catmull-Rom splines
+export function smoothPath(path: Vector[], granularity: number): Vector[] {
+  const smoothedPath: Vector[] = [];
+
+  for (let i = 1; i < path.length - 2; i++) {
+    const p0 = i === 0 ? path[i] : path[i - 1];
+    const p1 = path[i];
+    const p2 = path[i + 1];
+    const p3 = i === path.length - 3 ? path[i + 2] : path[i + 2];
+
+    for (let t = 0; t <= 1; t += granularity) {
+      const interpolatedPoint = interpolateCatmullRom(p0, p1, p2, p3, t);
+      smoothedPath.push(interpolatedPoint);
+    }
+  }
+
+  smoothedPath.push(path[path.length - 2]); // Add the last point
+  smoothedPath.push(path[path.length - 1]); // Add the target point
+
+  return smoothedPath;
 }

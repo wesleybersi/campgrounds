@@ -5,6 +5,7 @@ import MainScene from "./scenes/Main/MainScene";
 
 import LoadingScene from "./scenes/Loading/LoadingScene";
 import LandingScene from "./scenes/Landing/LandingScene";
+import HUDScene from "./scenes/HUD/HudScene";
 
 const Game = () => {
   const gameRef = useRef<HTMLDivElement | null>(null);
@@ -26,18 +27,11 @@ const Game = () => {
       },
       zoom: window.devicePixelRatio,
       parent: "phaser-game",
-      // backgroundColor: "#001111",
-      // backgroundColor: "#1A1217",
-      backgroundColor: "#613524",
-      // backgroundColor: "0x1e1c23",
-      // backgroundColor: "#2E4C5B",
-      // backgroundColor: "#1B262F",
-      // backgroundColor: "#afafaf",
-      // backgroundColor: "#3F963F",
-      scene: [LandingScene, MainScene, LoadingScene],
+      backgroundColor: "#3F963F",
+      scene: [LandingScene, MainScene, LoadingScene, HUDScene],
       render: {
         antialias: true,
-        pixelArt: false,
+        pixelArt: true,
         roundPixels: true,
       },
     };

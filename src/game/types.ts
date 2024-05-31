@@ -1,11 +1,17 @@
-import Wall from "./entities/Wall/wall";
-import Crate from "./entities/Tile2/letter";
-import Ramp from "./entities/ramp";
+import { Builder } from "./scenes/Main/entities/Labour/force/Builder/Builder";
 
-export type HoverTarget = Wall | Ramp | Crate;
 export type Cardinal = "top" | "bottom" | "left" | "right";
-
 export type Direction = "up" | "down" | "left" | "right";
+
+export type Vector = { x: number; y: number };
+
+// export interface Task {
+//   name: string;
+//   location: Vector;
+//   progress: number;
+//   agent: Agent | null;
+//   completed: boolean;
+// }
 
 //    "Linear"
 // ("Quad.In");
