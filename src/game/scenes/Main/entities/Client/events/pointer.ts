@@ -1,5 +1,5 @@
 import { CELL_SIZE, MAX_ZOOM, MIN_ZOOM, ZOOM_FACTOR } from "../../../constants";
-import { Tree } from "../../Grid/entities/Tree/Tree";
+import { Tree, treeSets } from "../../Grid/entities/Tree/Tree";
 import { Wall } from "../../Grid/entities/Wall/Wall";
 import { Forester } from "../../Labour/force/Forester/Forester";
 import { Builder } from "../../Labour/force/Builder/Builder";
@@ -12,6 +12,9 @@ import { Site } from "../../Recreation/entities/Site/Site";
 import { Group } from "../../Recreation/entities/Group/Group";
 import { Spawner } from "../../Recreation/entities/Spawner/Spawner";
 import { Reception } from "../../Recreation/entities/Reception/Reception";
+import { PlantTree } from "../../Labour/force/Forester/tasks/PlantTree";
+import { getRandomInt } from "../../../../../utils/helper-functions";
+import { Rock } from "../../Grid/entities/Rock/Rock";
 
 export function pointerEvents(this: Client) {
   const pointerMove = () => {
@@ -83,6 +86,16 @@ export function pointerEvents(this: Client) {
 
           // this.selected?.deselect();
           // this.selected = null;
+          break;
+        case "plant tree":
+          if (pointer.leftButtonDown()) {
+            new PlantTree(
+              this.scene,
+              col * CELL_SIZE,
+              row * CELL_SIZE,
+              getRandomInt(treeSets.length)
+            );
+          }
           break;
         case "spawn":
           if (pointer.leftButtonDown()) new Spawner(this.scene, col, row);
@@ -178,6 +191,7 @@ export function pointerEvents(this: Client) {
           break;
       }
       if (pointer.rightButtonDown()) {
+        this.scene.cameras.main.stopFollow();
         // this.placeMode = "";
       }
     });
@@ -202,7 +216,10 @@ export function pointerEvents(this: Client) {
         if (this.placeMode === "campsite") {
           let invalid = false;
           for (const { col, row } of cells.flat()) {
-            if (this.scene.grid.areaMatrix[row][col]) {
+            if (
+              this.scene.grid.areaMatrix[row][col] ||
+              this.scene.grid.collisionMap[row][col]
+            ) {
               invalid = true;
               break;
             }
@@ -239,7 +256,7 @@ export function pointerEvents(this: Client) {
               case "harvest":
                 {
                   const obj = this.scene.grid.objectMatrix[row][col];
-                  if (obj && obj instanceof Tree) {
+                  if (obj && (obj instanceof Tree || obj instanceof Rock)) {
                     obj.markForHarvest();
                   }
                 }
@@ -301,25 +318,9 @@ export function pointerEvents(this: Client) {
         const dy =
           (pointer.worldY - camera.worldView.centerY) * (1 - zoomRatio);
 
-        // Calculate the new camera position
-        let newScrollX = camera.scrollX - dx;
-        let newScrollY = camera.scrollY - dy;
-
-        // Ensure the camera does not go out of bounds
-        newScrollX = Phaser.Math.Clamp(
-          newScrollX,
-          0,
-          this.scene.colCount * CELL_SIZE - camera.width
-        );
-        newScrollY = Phaser.Math.Clamp(
-          newScrollY,
-          0,
-          this.scene.rowCount * CELL_SIZE - camera.height
-        );
-
         // Set the new camera position
-        camera.scrollX = newScrollX;
-        camera.scrollY = newScrollY;
+        camera.scrollX = camera.scrollX - dx;
+        camera.scrollY = camera.scrollY - dy;
       },
       this.scene
     );

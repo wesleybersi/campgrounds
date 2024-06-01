@@ -1,11 +1,12 @@
 import MainScene from "../../MainScene.ts";
 
-import { INITIAL_ZOOM } from "../../constants.ts";
+import { CELL_SIZE, INITIAL_ZOOM } from "../../constants.ts";
 import { Labour } from "../../entities/Labour/Labour.ts";
 import { Client } from "../../entities/Client/Client.ts";
 import { Grid } from "../../entities/Grid/Grid.ts";
 
 import { Recreation } from "../../entities/Recreation/Recreation.ts";
+import { getRandomInt } from "../../../../utils/helper-functions.ts";
 
 export default function create(this: MainScene) {
   this.hasLoaded = false;
@@ -28,6 +29,10 @@ export default function create(this: MainScene) {
     // camera.centerOn(this.player.x, this.player.y);
 
     camera.setDeadzone(camera.worldView.width * 4, camera.worldView.height * 4);
+    this.cameras.main.centerOn(
+      this.recreation.spawner.col * CELL_SIZE,
+      this.recreation.spawner.row * CELL_SIZE
+    );
     // camera.setLerp(0.1);
 
     this.hasLoaded = true;
@@ -43,15 +48,16 @@ export default function create(this: MainScene) {
       this.events.eventNames()
     );
   };
-  const createHUD = () => {
-    this.scene.launch("HUD", this);
-  };
+  // const createHUD = () => {
+  //   this.scene.launch("HUD", this);
+  // };
 
   createEntities();
   createCamera();
   createEvents();
-  createHUD();
+  // createHUD();
 
   this.hasLoaded = true;
+
   // this.cameras.main.postFX.addVignette(0.5, 0.5, 0.9);
 }

@@ -1,5 +1,5 @@
 import MainScene from "../../../MainScene";
-import { INITIAL_ZOOM } from "../../../constants";
+import { CELL_SIZE, INITIAL_ZOOM } from "../../../constants";
 import { Client } from "../Client";
 
 export function keyboardEvents(this: Client) {
@@ -88,6 +88,10 @@ export function keyboardEvents(this: Client) {
 
         case "Home":
           this.scene.cameras.main.zoom = INITIAL_ZOOM;
+          this.scene.cameras.main.centerOn(
+            this.scene.recreation.spawner.col * CELL_SIZE,
+            this.scene.recreation.spawner.row * CELL_SIZE
+          );
           break;
 
         case "=":

@@ -27,6 +27,7 @@ export class Blueprint extends Task {
       col * CELL_SIZE + CELL_SIZE / 2,
       row * CELL_SIZE + CELL_SIZE / 2,
       0.1,
+      undefined,
       () => {
         console.log("Building complete");
         new Wall(this.scene.grid, this.tier, this.col, this.row);

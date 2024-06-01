@@ -1,9 +1,11 @@
 import MainScene from "../../../../MainScene";
 import { Agent } from "../../../Agent/Agent";
-import { Woodcutting } from "./tasks/Woodcutting";
+import { PlantTree } from "./tasks/PlantTree";
+import { CutWood } from "./tasks/CutWood";
+import { CutStone } from "./tasks/CutStone";
 
 export class Forester extends Agent {
-  task: Woodcutting | null = null;
+  task: CutWood | CutStone | PlantTree | null = null;
   constructor(scene: MainScene, col: number, row: number) {
     super(scene, col, row);
 

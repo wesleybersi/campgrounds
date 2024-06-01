@@ -20,6 +20,7 @@ export class Client {
     "forester",
     "guests",
     "harvest",
+    "plant tree",
     "cancel",
     "campsite",
     "reception",

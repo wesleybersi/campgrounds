@@ -62,6 +62,8 @@ export class Tent {
     this.col = col;
     this.row = row;
     this.sprite.setOrigin(0, 0);
+    this.sprite.setScale(0.5);
+    this.sprite.setDepth(row);
     this.sprite.setTint(this.color);
     this.isPitched = true;
   }

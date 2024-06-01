@@ -32,7 +32,7 @@ export class Guest extends Agent {
     super(scene, col, row);
     this.scene = scene;
     this.group = group;
-    this.setTint(0x888fff);
+    // this.setTint(0x888fff);
 
     this.scene.recreation.guests.add(this);
   }

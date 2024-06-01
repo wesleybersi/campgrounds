@@ -14,7 +14,7 @@ export class Agent extends Phaser.GameObjects.Sprite {
 
   daysInService = 0;
   didMove = false;
-  movementSpeed = 50;
+  movementSpeed = 25;
   target: Vector | null = null;
   path: Vector[] = [];
   name = "";
@@ -41,11 +41,12 @@ export class Agent extends Phaser.GameObjects.Sprite {
     // this.setStrokeStyle(CELL_SIZE / 10, 0xffffff);
     this.generateRandomName();
     this.createAnimations();
-    this.setScale(0.65);
+    this.setScale(0.5);
     this.scene.allAgents.add(this);
     this.scene.add.existing(this);
   }
   update(delta: number) {
+    this.setDepth(Math.floor(this.y / CELL_SIZE));
     if (this.path.length > 0) {
       this.move(delta);
     } else {
@@ -76,5 +77,8 @@ export class Agent extends Phaser.GameObjects.Sprite {
   deselect() {
     this.scene.client.selected = null;
     this.setAlpha(0.5);
+  }
+  follow() {
+    this.scene.cameras.main.startFollow(this);
   }
 }

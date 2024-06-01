@@ -17,6 +17,10 @@ import { Agent } from "./entities/Agent/Agent";
 import { Recreation } from "./entities/Recreation/Recreation";
 import { NightOverlay } from "./entities/NightOverlay";
 
+export const createMainScene = (callback: (scene: MainScene) => void) => {
+  return new MainScene(callback);
+};
+
 export default class MainScene extends Phaser.Scene {
   hasLoaded = false;
   client!: Client;
@@ -26,6 +30,8 @@ export default class MainScene extends Phaser.Scene {
   loadingMessage = "";
   rowCount: number;
   colCount: number;
+  cellCount: number;
+
   width: number;
   height: number;
 
@@ -54,7 +60,7 @@ export default class MainScene extends Phaser.Scene {
   isEvening = false;
   // framesPerDay = 1000;
   // framesPerDay = 18000;
-  framesPerDay = 5000;
+  framesPerDay = 10000;
   timeOfDay = 0;
 
   target: {
@@ -71,11 +77,16 @@ export default class MainScene extends Phaser.Scene {
   //Events
   pointerEvents = pointerEvents;
   keyboardEvents = keyboardEvents;
+  reactCallback: (scene: MainScene) => void;
 
-  constructor() {
+  constructor(callback: (scene: MainScene) => void) {
     super({ key: "Main" });
-    this.rowCount = 175;
-    this.colCount = 275;
+    // this.rowCount = 400;
+    // this.colCount = 650;
+    this.rowCount = 250;
+    this.colCount = 350;
+    this.cellCount = this.rowCount * this.colCount;
+    this.reactCallback = callback;
     this.width = this.colCount * CELL_SIZE;
     this.height = this.rowCount * CELL_SIZE;
   }

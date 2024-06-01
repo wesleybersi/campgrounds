@@ -11,6 +11,8 @@ import { StaticObject } from "./types";
 import { Agent } from "../Agent/Agent";
 
 import { Area } from "../Area/Area";
+import { Rock } from "./entities/Rock/Rock";
+import { Tree, treeSets } from "./entities/Tree/Tree";
 
 export class Grid {
   scene: MainScene;
@@ -18,7 +20,7 @@ export class Grid {
   cols: number;
   collisionMap: (0 | 1)[][];
 
-  floorMatrix: ("grass" | "dirt" | "water" | null)[][] = [];
+  floorMatrix: ("grass" | "dirt" | "water" | "grass-elevated" | null)[][] = [];
   objectMatrix: (StaticObject | null)[][] = [];
   areaMatrix: (Area | null)[][] = [];
 
@@ -33,11 +35,13 @@ export class Grid {
     this.collisionMap = Array.from({ length: this.rows }, () =>
       Array.from({ length: this.cols }, () => 0)
     );
-    this.tileMap = new BasicTilemap(this, rows, cols);
     this.tracker = Array.from({ length: this.rows }, () =>
       Array.from({ length: this.cols }, () => new Set())
     );
 
+    this.floorMatrix = Array.from({ length: this.rows }, () =>
+      Array.from({ length: this.cols }, () => null)
+    );
     this.objectMatrix = Array.from({ length: this.rows }, () =>
       Array.from({ length: this.cols }, () => null)
     );
@@ -45,18 +49,47 @@ export class Grid {
       Array.from({ length: this.cols }, () => null)
     );
 
-    const forestAmount = getRandomInt(16, 48);
+    this.tileMap = new BasicTilemap(this, rows, cols);
+
+    //ANCHOR Forests and trees
+    const minForestAmount = Math.floor(
+      (this.scene.colCount + this.scene.rowCount) / 20
+    );
+    const maxForestAmount = Math.floor(
+      (this.scene.colCount + this.scene.rowCount) / 5
+    );
+    console.log(minForestAmount, maxForestAmount);
+    const forestAmount = getRandomInt(32, maxForestAmount);
     for (let i = 0; i < forestAmount; i++) {
-      new Forest(this);
+      const iterations = getRandomInt(8, 250);
+      new Forest(this, iterations);
     }
 
-    // const minRocks = 50;
-    // const maxRocks = 200;
-    // const rockAmount = getRandomInt(minRocks, maxRocks);
-    // for (let i = 0; i < rockAmount; i++) {
-    //   const { row, col } = this.getRandomEmptyCell();
-    //   new Rock(this, col, row);
-    // }
+    //ANCHOR Random trees
+    const minTrees = Math.floor(
+      (this.scene.colCount + this.scene.rowCount) / 10
+    );
+    const maxTrees = Math.floor(
+      (this.scene.colCount + this.scene.rowCount) / 2
+    );
+    const treeAmount = getRandomInt(minTrees, maxTrees);
+    for (let i = 0; i < treeAmount; i++) {
+      const { row, col } = this.getRandomEmptyCell();
+      new Tree(this, null, col, row, getRandomInt(treeSets.length));
+    }
+
+    //ANCHOR Rocks
+    const minRocks = Math.floor(
+      (this.scene.colCount + this.scene.rowCount) / 10
+    );
+    const maxRocks = Math.floor(
+      (this.scene.colCount + this.scene.rowCount) / 2
+    );
+    const rockAmount = getRandomInt(minRocks, maxRocks);
+    for (let i = 0; i < rockAmount; i++) {
+      const { row, col } = this.getRandomEmptyCell();
+      new Rock(this, col, row);
+    }
 
     this.pathFinder = new AStarFinder({
       grid: {
@@ -91,7 +124,8 @@ export class Grid {
     const row = getRandomInt(this.rows);
     const col = getRandomInt(this.cols);
 
-    if (!this.objectMatrix[row][col]) return { row, col };
+    if (!this.objectMatrix[row][col] && !this.collisionMap[row][col])
+      return { row, col };
     else return this.getRandomEmptyCell();
   }
   track(agent: Agent) {

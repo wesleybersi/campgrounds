@@ -1,0 +1,54 @@
+.wrapper {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  .map {
+    background: var(--btn-color);
+    position: relative;
+    overflow: hidden;
+    .position {
+      background: red;
+      width: 0.5rem;
+      height: 0.5rem;
+      display: block;
+    }
+  }
+  .speed {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.5rem;
+    .button {
+      aspect-ratio: 1;
+      width: var(--btn-size);
+      height: calc(var(--btn-size) / 2);
+    }
+  }
+  .time {
+    width: 100%;
+    height: calc(var(--btn-size) / 4);
+    background: var(--btn-color);
+    border-radius: 100vw;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    span {
+      position: absolute;
+      top: 0;
+      left: 0;
+      display: block;
+      background: #fff;
+      width: 50%;
+      height: 100%;
+    }
+    p {
+      color: white;
+      text-align: center;
+      font-weight: 600;
+    }
+  }
+}

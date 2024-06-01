@@ -3,6 +3,7 @@ import { Tree } from "../entities/Grid/entities/Tree/Tree";
 
 export default function update(this: MainScene, _: number, delta: number) {
   if (!this.hasLoaded) return;
+  this.reactCallback(this);
   if (this.gameSpeed === 0) return;
 
   delta /= 1000;

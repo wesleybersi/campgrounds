@@ -1,20 +1,23 @@
 import { useRef, useEffect } from "react";
-import useWindowSize from "../hooks/useWindowSize";
+
 import * as Phaser from "phaser";
-import MainScene from "./scenes/Main/MainScene";
+import MainScene, { createMainScene } from "./scenes/Main/MainScene";
 
 import LoadingScene from "./scenes/Loading/LoadingScene";
 import LandingScene from "./scenes/Landing/LandingScene";
 import HUDScene from "./scenes/HUD/HudScene";
 
-const Game = () => {
+interface Props {
+  callback: (scene: MainScene) => void;
+}
+const Game: React.FC<Props> = ({ callback }) => {
   const gameRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!gameRef.current) return;
 
     const config = {
-      type: Phaser.AUTO,
+      type: Phaser.WEBGL,
       width: "100%",
       height: "100%",
       scale: {
@@ -28,7 +31,7 @@ const Game = () => {
       zoom: window.devicePixelRatio,
       parent: "phaser-game",
       backgroundColor: "#3F963F",
-      scene: [LandingScene, MainScene, LoadingScene, HUDScene],
+      scene: [LandingScene, createMainScene(callback), LoadingScene, HUDScene],
       render: {
         antialias: true,
         pixelArt: true,

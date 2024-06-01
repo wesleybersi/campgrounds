@@ -9,25 +9,29 @@ export class Task {
   multiplier = 0;
   isCompleted = false;
   worker: Worker | null = null;
-  onComplete: () => void;
+  onProgress?: (progress: number) => void;
+  onComplete?: () => void;
   constructor(
     scene: MainScene,
     x: number,
     y: number,
     multiplier: number,
-    onComplete: () => void
+    onProgress?: (progress: number) => void,
+    onComplete?: () => void
   ) {
     this.scene = scene;
     this.x = x;
     this.y = y;
     this.multiplier = multiplier;
+    this.onProgress = onProgress;
     this.onComplete = onComplete;
     this.scene.labour.queuedTasks.push(this);
   }
   advance(delta: number) {
     this.progress += delta * this.multiplier;
+    if (this.onProgress) this.onProgress(this.progress);
     if (this.progress >= 1) {
-      this.onComplete();
+      if (this.onComplete) this.onComplete();
       this.remove();
     }
   }
