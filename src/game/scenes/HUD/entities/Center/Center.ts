@@ -24,7 +24,7 @@ export class Center {
       .setFontSize("24px");
   }
   update() {
-    this.modeText.setText("Tool: " + this.mainScene.client.placeMode);
+    this.modeText.setText("Tool: " + this.mainScene.client.order);
     //
   }
 }

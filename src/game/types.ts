@@ -4,6 +4,7 @@ export type Cardinal = "top" | "bottom" | "left" | "right";
 export type Direction = "up" | "down" | "left" | "right";
 
 export type Vector = { x: number; y: number };
+export type Position = { col: number; row: number };
 
 // export interface Task {
 //   name: string;

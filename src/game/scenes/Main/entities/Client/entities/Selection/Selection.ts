@@ -3,8 +3,10 @@ import { Client } from "../../Client";
 
 export class Selection extends Phaser.GameObjects.Rectangle {
   client: Client;
+  type: "single" | "line" | "rectangle" | "fill" = "fill";
   highlighted: { col: number; row: number; graphic: Phaser.GameObjects.Arc }[] =
     [];
+  //TODO Rectangle selections for hedges and walls
   rect: {
     x: number;
     y: number;
@@ -26,7 +28,7 @@ export class Selection extends Phaser.GameObjects.Rectangle {
     const width = x - this.x;
     const height = y - this.y;
     this.setSize(width, height);
-    console.log(this.x + width, this.y + height);
+    // console.log(this.x + width, this.y + height);
   }
   getSelectedTiles() {
     const topLeft = {

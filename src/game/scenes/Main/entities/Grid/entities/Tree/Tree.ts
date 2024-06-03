@@ -1,7 +1,12 @@
-import { getRandomInt } from "../../../../../../utils/helper-functions";
+import {
+  absolutePos,
+  getRandomInt,
+} from "../../../../../../utils/helper-functions";
 import MainScene from "../../../../MainScene";
 import { CELL_SIZE } from "../../../../constants";
-import { CutWood } from "../../../Labour/force/Forester/tasks/CutWood";
+import { Task } from "../../../Labour/entities/Task/Task";
+
+import { Notification } from "../../../Notification/Notification";
 import { Grid } from "../../Grid";
 
 import { Forest } from "../Forest/Forest";
@@ -22,10 +27,8 @@ export class Tree extends Phaser.GameObjects.Sprite {
   col: number;
   growth = 0.1;
   maxResources = 25;
-
-  // tile: Phaser.GameObjects.Rectangle;
   markedForHarvest = false;
-  harvestTarget: CutWood | null = null;
+  harvestTarget: Task | null = null;
 
   constructor(
     grid: Grid,
@@ -63,7 +66,7 @@ export class Tree extends Phaser.GameObjects.Sprite {
     this.setOrigin(0.5, 0.75);
     // const alphaOffset = getRandomInt(50, 100) / 100;
     // this.setAlpha(alphaOffset);
-    this.setDepth(this.row);
+    this.setDepth(this.y);
     // const scale = getRandomInt(-24, 8) / 100;
     // this.setScale(1 + scale);
     // this.setSize(this.maxSize * this.growth, this.maxSize * this.growth);
@@ -75,7 +78,12 @@ export class Tree extends Phaser.GameObjects.Sprite {
 
     grid.objectMatrix[row][col] = this;
     this.scene.add.existing(this);
+
+    this.on("pointerover", () => {
+      console.log("oi?");
+    });
   }
+
   grow() {
     this.growth = Math.min(this.growth + 0.025, 1);
     // this.setSize(this.maxSize * this.growth, this.maxSize * this.growth);
@@ -83,20 +91,34 @@ export class Tree extends Phaser.GameObjects.Sprite {
   markForHarvest() {
     if (this.markedForHarvest) return;
     this.markedForHarvest = true;
-    // this.isStroked = true;
-    // this.setStrokeStyle(CELL_SIZE / 8, 0xff0000);
     this.setTint(0xff8888);
-    this.harvestTarget = new CutWood(this.scene, this);
+
+    this.harvestTarget = new Task(
+      this.scene,
+      "forester",
+      this.col,
+      this.row,
+      0.1,
+      undefined,
+      () => {
+        const resources = this.harvest();
+        new Notification(
+          this.scene,
+          `+${resources} wood`,
+          absolutePos(this.col),
+          absolutePos(this.row)
+        );
+        this.scene.client.inventory.materials.wood += resources;
+        this.remove();
+      }
+    );
   }
   unmarkForHarvest() {
     this.markedForHarvest = false;
-    // this.isStroked = false;
     this.clearTint();
-    this.harvestTarget?.remove();
     this.harvestTarget = null;
   }
   harvest() {
-    this.remove();
     return Math.floor(this.maxResources * this.growth);
   }
   remove() {

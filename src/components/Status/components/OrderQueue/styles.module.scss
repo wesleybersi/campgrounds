@@ -1,0 +1,21 @@
+.orders {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: space-between;
+  background: var(--btn-color);
+  backdrop-filter: blur(2px);
+  padding: 0.5rem;
+  min-width: 800px;
+  border-radius: 100vw;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  font-weight: 600;
+  font-size: 1rem;
+  .orders {
+    display: flex;
+    flex-direction: column;
+  }
+}

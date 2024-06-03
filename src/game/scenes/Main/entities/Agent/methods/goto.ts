@@ -1,38 +1,34 @@
-import { CELL_SIZE } from "../../../constants";
 import { Agent } from "../Agent";
 
-export function goto(this: Agent, x: number, y: number): boolean {
+export function goto(this: Agent, col: number, row: number): boolean {
+  if (!this.isActive) return false;
   //Returns true if a path was succesfully provided
-
-  if (
-    !this.scene.grid.isWithinBounds(
-      Math.floor(x / CELL_SIZE),
-      Math.floor(y / CELL_SIZE)
-    )
-  ) {
+  if (!this.scene.grid.isWithinBounds(col, row)) {
     return false;
   }
 
   this.path = [];
 
   const startPos = {
-    x: Math.floor(this.x / CELL_SIZE),
-    y: Math.floor(this.y / CELL_SIZE),
+    x: this.col,
+    y: this.row,
   };
   const goalPos = {
-    x: Math.floor(x / CELL_SIZE),
-    y: Math.floor(y / CELL_SIZE),
+    x: col,
+    y: row,
   };
 
   const generatedPath = this.scene.grid.pathFinder.findPath(startPos, goalPos);
 
   for (const cell of generatedPath) {
-    this.path.push({ x: cell[0], y: cell[1] });
+    this.path.push({ col: cell[0], row: cell[1] });
   }
 
-  this.target = { x, y };
+  this.target = { col, row };
 
   if (this.path.length > 0) {
     return true;
-  } else return false;
+  } else {
+    return false;
+  }
 }

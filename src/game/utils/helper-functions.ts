@@ -1,3 +1,4 @@
+import { CELL_SIZE } from "../scenes/Main/constants";
 import { Cardinal, Direction, Vector } from "../types";
 
 export function getOppositeSide(cardinal: Cardinal) {
@@ -284,4 +285,8 @@ export function smoothPath(path: Vector[], granularity: number): Vector[] {
   smoothedPath.push(path[path.length - 1]); // Add the target point
 
   return smoothedPath;
+}
+
+export function absolutePos(value: number) {
+  return value * CELL_SIZE + CELL_SIZE / 2;
 }

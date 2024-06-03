@@ -12,7 +12,10 @@ export class Tent {
   site: Site | null = null;
   pitchProgress = 0; // Out of 1
   isPitched = false;
-  sprite?: Phaser.GameObjects.Sprite;
+  bagCarrier: Guest;
+
+  bagSprite?: Phaser.GameObjects.Sprite;
+  tentSprite?: Phaser.GameObjects.Sprite;
   occupants = new Set<Guest>();
   size: [number, number] = [0, 0];
   color: number;
@@ -21,11 +24,22 @@ export class Tent {
 
   constructor(scene: MainScene, occupants: Set<Guest>) {
     this.scene = scene;
+    this.color = generateRandomColor();
     this.occupants = occupants;
+    console.log("Tent has", this.occupants, "occupants");
     for (const guest of occupants) {
       guest.tent = this;
     }
-    this.color = generateRandomColor();
+
+    this.bagCarrier = Array.from(occupants)[0];
+    this.bagSprite = this.scene.add.sprite(
+      this.bagCarrier.x,
+      this.bagCarrier.y,
+      "bag-1"
+    );
+    this.bagCarrier.bag = this.bagSprite;
+    this.bagSprite.setTint(this.color);
+
     this.size = this.getTentSize(occupants.size);
 
     console.log("new tent created", this.color, this.size);
@@ -35,9 +49,9 @@ export class Tent {
     //     site.grid[y][x].object = this;
     //   }
     // }
-
-    // this.setOrigin(0, 0);
-    // this.scene.add.existing(this);
+  }
+  unpitch(progress: number) {
+    this.pitchProgress = 1 - progress;
   }
   pitch(progress: number) {
     this.pitchProgress = progress;
@@ -50,8 +64,18 @@ export class Tent {
     occupant.setAlpha(1);
     occupant.isInsideTent = false;
   }
+  remove() {
+    this.tentSprite?.destroy();
+    this.bagSprite = this.scene.add.sprite(
+      this.bagCarrier.x,
+      this.bagCarrier.y,
+      "bag-1"
+    );
+    this.bagSprite.setTint(this.color);
+    this.bagCarrier.bag = this.bagSprite;
+  }
   place(col: number, row: number) {
-    this.sprite = this.scene.add.sprite(
+    this.tentSprite = this.scene.add.sprite(
       col * CELL_SIZE,
       row * CELL_SIZE,
       "tent",
@@ -61,10 +85,13 @@ export class Tent {
     );
     this.col = col;
     this.row = row;
-    this.sprite.setOrigin(0, 0);
-    this.sprite.setScale(0.5);
-    this.sprite.setDepth(row);
-    this.sprite.setTint(this.color);
+    console.log("Placing tent", this.col, this.row);
+    this.tentSprite.setOrigin(0, 0);
+    delete this.bagCarrier.bag;
+    this.bagSprite?.destroy();
+
+    this.tentSprite.setDepth(this.tentSprite.y);
+    this.tentSprite.setTint(this.color);
     this.isPitched = true;
   }
   getTentSize(persons: number): [number, number] {

@@ -1,13 +1,15 @@
 import { getRandomInt } from "../../../../../../utils/helper-functions";
 import MainScene from "../../../../MainScene";
-import { CELL_SIZE } from "../../../../constants";
+import { CELL_SIZE, PRICE_PER_CELL } from "../../../../constants";
 import { Area } from "../../../Area/Area";
+import { Notification } from "../../../Notification/Notification";
 import { PitchTent } from "../../activities/PitchTent";
 import { Group } from "../Group/Group";
 
 import { Tent } from "../Tent/Tent";
 
 export class Site extends Area {
+  pricePerDay = 0;
   occupants: Group | null = null;
   constructor(
     scene: MainScene,
@@ -21,6 +23,8 @@ export class Site extends Area {
 
     this.scene.recreation.sites.add(this);
     this.scene.add.existing(this);
+
+    this.pricePerDay += PRICE_PER_CELL * this.grid.flat().length;
   }
 
   occupy(group: Group) {
@@ -32,10 +36,7 @@ export class Site extends Area {
       const col = this.rect.topLeft.col + getRandomInt(this.grid[0].length);
       const row = this.rect.topLeft.row + getRandomInt(this.grid.length);
 
-      guest.goto(
-        col * CELL_SIZE + CELL_SIZE / 2,
-        row * CELL_SIZE + CELL_SIZE / 2
-      );
+      guest.goto(col, row);
     }
 
     //Randomly place tents in empty spots
@@ -97,8 +98,8 @@ export class Site extends Area {
               this.scene,
               tent,
               tent.occupants,
-              Math.floor((tent.col + this.rect.topLeft.col) * CELL_SIZE),
-              Math.floor((tent.row + this.rect.topLeft.row) * CELL_SIZE)
+              tent.col + this.rect.topLeft.col,
+              tent.row + this.rect.topLeft.row
             );
           }
         }

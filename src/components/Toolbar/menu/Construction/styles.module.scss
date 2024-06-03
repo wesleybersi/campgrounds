@@ -1,0 +1,58 @@
+.wrapper {
+  position: absolute;
+  min-width: 700px;
+  max-width: 800px;
+  left: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  user-select: none;
+  background: var(--btn-color);
+  padding: var(--pad);
+  border-radius: 4px;
+  backdrop-filter: blur(8px);
+  border-top-left-radius: 0;
+  section {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+    .foresters {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      grid-gap: 0.5rem;
+      .profile {
+        aspect-ratio: 1;
+        width: 3rem;
+        height: 3rem;
+        background: #ffffff88;
+      }
+    }
+    .orders {
+      display: flex;
+      gap: 0.5rem;
+    }
+  }
+  .tabs {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    gap: 0.5rem;
+
+    .tab {
+      transform: translateY(-100%);
+      height: calc(var(--btn-size)) / 2;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+      display: grid;
+      place-content: center;
+      font-size: 0.8rem;
+      transition: height 250ms ease;
+      word-break: keep-all;
+      text-wrap: nowrap;
+    }
+  }
+}

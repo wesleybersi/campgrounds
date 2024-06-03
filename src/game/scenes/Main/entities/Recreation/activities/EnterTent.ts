@@ -1,5 +1,4 @@
 import MainScene from "../../../MainScene";
-import { CELL_SIZE } from "../../../constants";
 import { Activity } from "../entities/Activity/Activity";
 import { Guest } from "../entities/Guest/Guest";
 
@@ -8,8 +7,8 @@ export class EnterTent extends Activity {
     super(
       scene,
       new Set([guest]),
-      Math.floor(guest.tent?.col ?? 0) * CELL_SIZE,
-      Math.floor(guest.tent?.row ?? 0) * CELL_SIZE,
+      guest.tent?.col ?? 0,
+      guest.tent?.row ?? 0,
       1,
       undefined,
       () => {

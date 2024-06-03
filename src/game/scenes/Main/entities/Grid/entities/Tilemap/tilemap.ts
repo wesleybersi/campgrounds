@@ -75,6 +75,7 @@ export default class BasicTilemap {
     if (!this.grid.isWithinBounds(col, row)) return;
     const tile = this.base.putTileAt(36, col, row);
     this.grid.floorMatrix[row][col] = "dirt";
+    this.autoTileDirt();
   }
   placeElevationTile(col: number, row: number) {
     if (!this.grid.isWithinBounds(col, row)) return;
@@ -90,11 +91,9 @@ export default class BasicTilemap {
     if (oneIn(50)) {
       index = 163;
     }
-    if (oneIn(100)) {
-      index = 164;
-    }
+
     if (oneIn(200)) {
-      const deco = [162, 163, 164, 165];
+      const deco = [162, 163, 165];
       index = deco[getRandomInt(deco.length)];
     }
     const tile = this.base.putTileAt(index, col, row);
@@ -553,5 +552,212 @@ export default class BasicTilemap {
         );
       }
     });
+  }
+  autoTileDirt() {
+    this.grid.floorMatrix.forEach((row, y) =>
+      row.forEach((cell, x) => {
+        if (cell === "dirt") {
+          const tile = this.base.getTileAt(x, y);
+          const surroundings = this.getSurroundings(x, y);
+
+          for (const [key, { col, row }] of Object.entries(surroundings)) {
+            if (!this.grid.isWithinBounds(col, row)) {
+              delete surroundings[key];
+            }
+          }
+
+          const top = surroundings.top
+            ? this.grid.floorMatrix[surroundings.top.row][
+                surroundings.top.col
+              ]?.startsWith("grass")
+            : false;
+          const bottom = surroundings.bottom
+            ? this.grid.floorMatrix[surroundings.bottom.row][
+                surroundings.bottom.col
+              ]?.startsWith("grass")
+            : false;
+          const left = surroundings.left
+            ? this.grid.floorMatrix[surroundings.left.row][
+                surroundings.left.col
+              ]?.startsWith("grass")
+            : false;
+          const right = surroundings.right
+            ? this.grid.floorMatrix[surroundings.right.row][
+                surroundings.right.col
+              ]?.startsWith("grass")
+            : false;
+
+          const topLeft = surroundings.topLeft
+            ? this.grid.floorMatrix[surroundings.topLeft.row][
+                surroundings.topLeft.col
+              ]?.startsWith("grass")
+            : false;
+          const topRight = surroundings.topRight
+            ? this.grid.floorMatrix[surroundings.topRight.row][
+                surroundings.topRight.col
+              ]?.startsWith("grass")
+            : false;
+          const bottomLeft = surroundings.bottomLeft
+            ? this.grid.floorMatrix[surroundings.bottomLeft.row][
+                surroundings.bottomLeft.col
+              ]?.startsWith("grass")
+            : false;
+          const bottomRight = surroundings.bottomRight
+            ? this.grid.floorMatrix[surroundings.bottomRight.row][
+                surroundings.bottomRight.col
+              ]?.startsWith("grass")
+            : false;
+
+          const adjacentToTileIndex = (
+            top: boolean,
+            bottom: boolean,
+            left: boolean,
+            right: boolean,
+            topLeft: boolean,
+            topRight: boolean,
+            bottomLeft: boolean,
+            bottomRight: boolean
+          ): number => {
+            if (right && !left && !top && !bottom) return 37;
+            else if (!right && left && !top && !bottom) {
+              return 35;
+            } else if (!right && !left && !top && bottom) return 63;
+            else if (!right && !left && top && !bottom) return 9;
+            else if (!right && !left && top && bottom) {
+              return 90;
+            } else if (right && left && !top && !bottom) {
+              return 38;
+            } else if (right && !left && !top && bottom) {
+              // if (bottomRight) return 34;
+              return 64;
+            } else if (right && !left && top && !bottom) {
+              // if (topRight) return 7;
+              return 10;
+            } else if (!right && left && !top && bottom) {
+              // if (bottomLeft) return 26;
+              return 62;
+            } else if (!right && left && top && !bottom) {
+              // if (topLeft) return 4;
+              if (bottomRight) return 118;
+              return 8;
+            } else if (right && left && top && !bottom) {
+              // if (topLeft && !topRight) {
+              //   return 10;
+              // } else if (!topLeft && topRight) {
+              //   return 11;
+              // } else if (topLeft && topRight) {
+              //   return 12;
+              // } else if (!topLeft && !topRight) {
+              return 8;
+              // }
+            } else if (right && left && !top && bottom) {
+              // if (bottomLeft && !bottomRight) {
+              //   return 29;
+              // } else if (!bottomLeft && bottomRight) {
+              //   return 37;
+              // } else if (bottomLeft && bottomRight) {
+              //   return 42;
+              // } else if (!bottomLeft && !bottomRight) {
+              return 65;
+              // }
+            } else if (!right && left && top && bottom) {
+              // if (topLeft && !bottomLeft) {
+              //   return 17;
+              // } else if (!topLeft && bottomLeft) {
+              //   return 27;
+              // } else if (topLeft && bottomLeft) {
+              //   return 28;
+              // } else if (!topLeft && !bottomLeft) {
+              return 89;
+              // }
+            } else if (right && !left && top && bottom) {
+              // if (topRight && !bottomRight) {
+              //   return 20;
+              // } else if (!topRight && bottomRight) {
+              //   return 35;
+              // } else if (topRight && bottomRight) {
+              //   return 36;
+              // } else if (!topRight && !bottomRight) {
+              return 91;
+              // }
+            } else if (right && left && top && bottom) {
+              //Surrounded
+              // tile.tint = 0xff0000;
+
+              if (topLeft && !bottomLeft && !topRight && !bottomRight) {
+                return 144;
+              } else if (!topLeft && !bottomLeft && topRight && !bottomRight) {
+                // return 24;
+              } else if (!topLeft && bottomLeft && !topRight && !bottomRight) {
+                // return 30;
+              } else if (!topLeft && !bottomLeft && !topRight && bottomRight) {
+                // return 38;
+              }
+              // if (topLeft && bottomLeft && !topRight && !bottomRight) {
+              //   return 31;
+              // } else if (!topLeft && !bottomLeft && topRight && bottomRight) {
+              //   return 40;
+              // } else if (topLeft && !bottomLeft && topRight && !bottomRight) {
+              //   return 25;
+              // } else if (!topLeft && bottomLeft && !topRight && bottomRight) {
+              //   return 43;
+              // }
+              // if (!topLeft && bottomLeft && topRight && bottomRight) {
+              //   return 45;
+              // } else if (topLeft && bottomLeft && !topRight && bottomRight) {
+              //   return 44;
+              // } else if (topLeft && !bottomLeft && topRight && bottomRight) {
+              //   return 41;
+              // } else if (topLeft && bottomLeft && topRight && !bottomRight) {
+              //   return 33;
+              // } else if (!topLeft && !topRight && !bottomLeft && !bottomRight)
+              return 92;
+            } else {
+              //Surrounded
+              if (topLeft && !bottomLeft && !topRight && !bottomRight) {
+                return 144;
+              } else if (!topLeft && !bottomLeft && topRight && !bottomRight) {
+                return 143;
+              } else if (!topLeft && bottomLeft && !topRight && !bottomRight) {
+                return 117;
+              } else if (!topLeft && !bottomLeft && !topRight && bottomRight) {
+                return 116;
+              }
+              if (topLeft && bottomLeft && !topRight && !bottomRight) {
+                // return 31;
+              } else if (!topLeft && !bottomLeft && topRight && bottomRight) {
+                // return 40;
+              } else if (topLeft && !bottomLeft && topRight && !bottomRight) {
+                // return 25;
+              } else if (!topLeft && bottomLeft && !topRight && bottomRight) {
+                // return 43;
+              }
+              if (!topLeft && bottomLeft && topRight && bottomRight) {
+                // return 45;
+              } else if (topLeft && bottomLeft && !topRight && bottomRight) {
+                // return 44;
+              } else if (topLeft && !bottomLeft && topRight && bottomRight) {
+                // return 41;
+              } else if (topLeft && bottomLeft && topRight && !bottomRight) {
+                // return 33;
+              } else if (!topLeft && !topRight && !bottomLeft && !bottomRight) {
+                //
+              }
+              return 36;
+            }
+          };
+          tile.index = adjacentToTileIndex(
+            top ?? false,
+            bottom ?? false,
+            left ?? false,
+            right ?? false,
+            topLeft ?? false,
+            topRight ?? false,
+            bottomLeft ?? false,
+            bottomRight ?? false
+          );
+        }
+      })
+    );
   }
 }

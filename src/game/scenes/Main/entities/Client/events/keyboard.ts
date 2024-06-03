@@ -1,11 +1,15 @@
 import MainScene from "../../../MainScene";
 import { CELL_SIZE, INITIAL_ZOOM } from "../../../constants";
+import { Tree } from "../../Grid/entities/Tree/Tree";
 import { Client } from "../Client";
 
 export function keyboardEvents(this: Client) {
   const keyDown = () => {
     this.scene.input.keyboard?.on("keydown", (event: KeyboardEvent) => {
       if (!this.scene.hasLoaded || event.repeat) return;
+
+      this.scene.cameras.main.stopFollow();
+
       switch (event.key) {
         case "Meta":
           this.keys.meta = true;
@@ -13,13 +17,33 @@ export function keyboardEvents(this: Client) {
         case "Shift":
           this.keys.shift = true;
           break;
-        case "s":
+        case "ArrowUp":
+        case "W":
+        case "w":
+          this.keys.up = true;
+          break;
+        case "ArrowLeft":
+        case "A":
+        case "a":
+          this.keys.left = true;
+          break;
+        case "ArrowDown":
         case "S":
+        case "s":
+          this.keys.down = true;
+          break;
+        case "ArrowRight":
+        case "D":
+        case "d":
+          this.keys.right = true;
+          break;
+
+        case "[":
           this.scene.recreation.spawner.spawn();
           break;
         case "Backspace":
           this.scene.grid.areaMatrix.flat().forEach((area) => area?.deselect());
-          this.placeMode = "";
+          this.order = "";
           break;
         case "0":
           if (!this.overlay) {
@@ -63,28 +87,6 @@ export function keyboardEvents(this: Client) {
             }
           }
           break;
-        case "PageDown":
-          {
-            let index = this.modes.indexOf(this.placeMode);
-            if (index === 0) {
-              index = this.modes.length - 1;
-            } else {
-              index--;
-            }
-            this.placeMode = this.modes[index];
-          }
-          break;
-        case "PageUp":
-          {
-            let index = this.modes.indexOf(this.placeMode);
-            if (index === this.modes.length - 1) {
-              index = 0;
-            } else {
-              index++;
-            }
-            this.placeMode = this.modes[index];
-          }
-          break;
 
         case "Home":
           this.scene.cameras.main.zoom = INITIAL_ZOOM;
@@ -100,9 +102,6 @@ export function keyboardEvents(this: Client) {
           } else {
             this.scene.scale.startFullscreen();
           }
-          break;
-
-        case "w":
           break;
       }
     });
@@ -121,6 +120,27 @@ export function keyboardEvents(this: Client) {
           break;
 
         case "[":
+          break;
+
+        case "W":
+        case "w":
+        case "ArrowUp":
+          this.keys.up = false;
+          break;
+        case "A":
+        case "a":
+        case "ArrowLeft":
+          this.keys.left = false;
+          break;
+        case "ArrowDown":
+        case "S":
+        case "s":
+          this.keys.down = false;
+          break;
+        case "ArrowRight":
+        case "D":
+        case "d":
+          this.keys.right = false;
           break;
       }
     });

@@ -2,6 +2,7 @@ import { Client } from "../../Client";
 
 export class Inventory {
   client: Client;
+  money = 5000;
   materials: {
     wood: number;
     stone: number;

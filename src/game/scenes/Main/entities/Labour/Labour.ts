@@ -3,12 +3,8 @@ import { Worker } from "./types";
 import MainScene from "../../MainScene";
 
 import { Builder } from "./force/Builder/Builder";
-import { Blueprint } from "./force/Builder/tasks/Blueprint";
 import { Forester } from "./force/Forester/Forester";
-import { CutWood } from "./force/Forester/tasks/CutWood";
 import { Task } from "./entities/Task/Task";
-import { PlantTree } from "./force/Forester/tasks/PlantTree";
-import { CutStone } from "./force/Forester/tasks/CutStone";
 
 export class Labour {
   scene: MainScene;
@@ -16,8 +12,12 @@ export class Labour {
   queuedTasks: Task[] = [];
   foresters: Forester[] = [];
   builders: Builder[] = [];
+  taskGrid: (Task | null)[][] = [];
   constructor(scene: MainScene) {
     this.scene = scene;
+    this.taskGrid = Array.from({ length: scene.rowCount }, () =>
+      Array.from({ length: scene.colCount }, () => null)
+    );
   }
   update(delta: number) {
     if (this.scene.frameCounter % 60) {
@@ -37,39 +37,32 @@ export class Labour {
       (task) => !task.worker && !task.isCompleted
     );
 
-    const builderTasks = tasks.filter((task) => task instanceof Blueprint);
-    const foresterTasks = tasks.filter(
-      (task) =>
-        task instanceof CutWood ||
-        task instanceof CutStone ||
-        task instanceof PlantTree
-    );
+    const builderTasks = tasks.filter((task) => task.laborer === "builder");
+    const foresterTasks = tasks.filter((task) => task.laborer === "forester");
 
-    const assignTask = (task: Task) => {
+    const assignTask = (task: Task, exclude?: Worker) => {
       if (task) {
-        const availableWorkers = this.getAvailableWorkers(task);
+        const availableWorkers = this.getAvailableWorkers(task, exclude);
         if (availableWorkers.length > 0) {
           const nearestWorker = availableWorkers.reduce((prev, curr) =>
-            Math.abs(curr.y - task.y) + Math.abs(curr.x - task.x) <
-            Math.abs(prev.y - task.y) + Math.abs(prev.x - task.x)
+            Math.abs(curr.row - task.row) + Math.abs(curr.col - task.col) <
+            Math.abs(prev.row - task.row) + Math.abs(prev.col - task.col)
               ? curr
               : prev
           );
 
           if (
-            (nearestWorker instanceof Builder && task instanceof Blueprint) ||
-            (nearestWorker instanceof Forester && task instanceof CutWood) ||
-            (nearestWorker instanceof Forester && task instanceof CutStone) ||
-            (nearestWorker instanceof Forester && task instanceof PlantTree)
+            (nearestWorker instanceof Builder && task.laborer === "builder") ||
+            (nearestWorker instanceof Forester && task.laborer === "forester")
           ) {
             nearestWorker.task = task ?? null;
           }
 
           task.worker = nearestWorker;
-          const routePossible = task.worker.goto(task.x, task.y);
+          const routePossible = task.worker.goto(task.col, task.row);
           if (!routePossible) {
-            task.remove();
             nearestWorker.task = null;
+            assignTask(task, nearestWorker);
           }
         }
       }
@@ -84,32 +77,59 @@ export class Labour {
       worker.redirect();
     }
   }
+  removeTask(markedTask: Task) {
+    this.taskGrid[markedTask.row][markedTask.col] = null;
+    const updatedTasks = this.queuedTasks.filter((task) => task !== markedTask);
+    this.queuedTasks = updatedTasks;
+  }
   hire(type: "forester" | "builder") {
     let worker: Worker | null = null;
     switch (type) {
       case "forester":
-        worker = new Forester(
-          this.scene,
-          this.scene.recreation.spawner.col,
-          this.scene.recreation.spawner.row
-        );
+        {
+          //TODO weekly payment
+          const price = 250;
+          if (this.scene.client.inventory.money >= price) {
+            this.scene.client.inventory.money -= price;
+          } else {
+            return;
+          }
+          worker = new Forester(
+            this.scene,
+            this.scene.recreation.spawner.col,
+            this.scene.recreation.spawner.row
+          );
+        }
+        break;
+      case "builder":
+        {
+          const price = 200;
+          if (this.scene.client.inventory.money >= price) {
+            this.scene.client.inventory.money -= price;
+          } else {
+            return;
+          }
+          worker = new Builder(
+            this.scene,
+            this.scene.recreation.spawner.col,
+            this.scene.recreation.spawner.row
+          );
+        }
         break;
     }
     worker?.follow();
   }
-  getAvailableWorkers(task: Task) {
-    if (task instanceof Blueprint) {
+  getAvailableWorkers(task: Task, exclude?: Worker) {
+    if (task.laborer === "builder") {
       return Array.from(this.workers).filter(
-        (worker) => worker instanceof Builder && !worker.task
+        (worker) =>
+          worker instanceof Builder && !worker.task && worker !== exclude
       );
     }
-    if (
-      task instanceof CutWood ||
-      task instanceof CutStone ||
-      task instanceof PlantTree
-    ) {
+    if (task.laborer === "forester") {
       return Array.from(this.workers).filter(
-        (worker) => worker instanceof Forester && !worker.task
+        (worker) =>
+          worker instanceof Forester && !worker.task && worker !== exclude
       );
     }
     return [];

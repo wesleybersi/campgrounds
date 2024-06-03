@@ -4,29 +4,42 @@ import { useEffect, useRef, useState } from "react";
 import { MdForest as IconForesting } from "react-icons/md";
 import { IoConstruct as IconConstruction } from "react-icons/io5";
 import { TfiLayoutGrid3Alt as IconAreas } from "react-icons/tfi";
+import { MdTour as IconTours } from "react-icons/md";
+
 import Foresting from "./menu/Foresting/Foresting";
+import Areas from "./menu/Areas/Areas";
+import Construction from "./menu/Construction/Construction";
 
 const Toolbar = () => {
-  const [menuBottomPosition, setMenuBottomPosition] = useState<number>(0);
+  const [bottomOffset, setBottomOffset] = useState<number>(0);
   const toolbarRef = useRef<HTMLDivElement | null>(null);
   const [selected, setSelected] = useState<number>(-1);
   const iconSize = "24px";
   const tools = [
     {
+      name: "Areas",
+      icon: <IconAreas size={iconSize} />,
+      component: <Areas bottom={bottomOffset} />,
+    },
+    {
       name: "Foresting",
       icon: <IconForesting size={iconSize} />,
-      component: <Foresting bottom={menuBottomPosition} />,
+      component: <Foresting bottom={bottomOffset} />,
     },
 
-    { name: "Building", icon: <IconConstruction size={iconSize} /> },
-    { name: "Areas", icon: <IconAreas size={iconSize} /> },
+    {
+      name: "Building",
+      icon: <IconConstruction size={iconSize} />,
+      component: <Construction bottom={bottomOffset} />,
+    },
+    { name: "Tours", icon: <IconTours size={iconSize} /> },
   ];
 
   useEffect(() => {
     //Calculates where the menu components need to mount
     if (!toolbarRef.current) return;
     const halfRem = 8;
-    setMenuBottomPosition(
+    setBottomOffset(
       window.innerHeight - toolbarRef.current.offsetTop + halfRem
     );
   }, [toolbarRef.current]);

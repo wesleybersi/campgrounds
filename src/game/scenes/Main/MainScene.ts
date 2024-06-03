@@ -28,6 +28,8 @@ export default class MainScene extends Phaser.Scene {
   // tilemap!: BasicTilemap;
   loadingScene!: LoadingScene;
   loadingMessage = "";
+
+  siteName = "My Campsite";
   rowCount: number;
   colCount: number;
   cellCount: number;
@@ -58,9 +60,8 @@ export default class MainScene extends Phaser.Scene {
 
   currentDay = 1;
   isEvening = false;
-  // framesPerDay = 1000;
-  // framesPerDay = 18000;
-  framesPerDay = 10000;
+  // framesPerDay = 2500;
+  framesPerDay = 18000;
   timeOfDay = 0;
 
   target: {
@@ -73,6 +74,8 @@ export default class MainScene extends Phaser.Scene {
   preload = preload;
   create = create;
   update = update;
+
+  topDepth = 1_000_000;
 
   //Events
   pointerEvents = pointerEvents;

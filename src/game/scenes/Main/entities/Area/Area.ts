@@ -3,7 +3,6 @@ import { CELL_SIZE } from "../../constants";
 
 export class Area extends Phaser.GameObjects.Rectangle {
   scene: MainScene;
-
   rect: { [key: string]: { col: number; row: number } };
   grid: { col: number; row: number }[][] = [];
   isSelected = false;

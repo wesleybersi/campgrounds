@@ -18,6 +18,7 @@ export class Wall extends Phaser.GameObjects.Rectangle {
     this.col = col;
     this.grid.collisionMap[row][col] = 1;
     this.grid.objectMatrix[row][col] = this;
+    this.setDepth(this.y);
 
     switch (type) {
       case "wood":

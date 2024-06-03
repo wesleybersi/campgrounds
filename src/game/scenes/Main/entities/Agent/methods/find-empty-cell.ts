@@ -1,23 +1,27 @@
+import { absolutePos } from "../../../../../utils/helper-functions";
 import { CELL_SIZE } from "../../../constants";
 import { Agent } from "../Agent";
 
-export function findEmptyCell(this: Agent) {
-  const col = Math.floor(this.x / CELL_SIZE);
-  const row = Math.floor(this.y / CELL_SIZE);
-
+export function findEmptyCell(this: Agent, instant?: boolean) {
   const surroundings = [
-    { col: col + 1, row: row },
-    { col: col - 1, row: row },
-    { col: col, row: row + 1 },
-    { col: col, row: row - 1 },
+    { col: this.col + 1, row: this.row },
+    { col: this.col - 1, row: this.row },
+    { col: this.col, row: this.row + 1 },
+    { col: this.col, row: this.row - 1 },
   ].sort(() => Math.random() - 0.5);
 
-  for (const surrounding of surroundings) {
-    if (this.scene.grid.collisionMap[surrounding.row][surrounding.col])
-      continue;
-    this.goto(
-      surrounding.col * CELL_SIZE + CELL_SIZE / 2,
-      surrounding.row * CELL_SIZE + CELL_SIZE / 2
-    );
+  for (const { row, col } of surroundings) {
+    if (!this.scene.grid.isWithinBounds(col, row)) continue;
+    if (this.scene.grid.collisionMap[row][col]) continue;
+
+    if (instant) {
+      const x = absolutePos(col);
+      const y = absolutePos(row);
+      this.setPosition(x, y);
+      this.col = col;
+      this.row = row;
+    } else {
+      this.goto(col, row);
+    }
   }
 }

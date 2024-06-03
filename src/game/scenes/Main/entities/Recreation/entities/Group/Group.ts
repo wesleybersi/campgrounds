@@ -1,5 +1,8 @@
 import { getRandomInt } from "../../../../../../utils/helper-functions";
 import MainScene from "../../../../MainScene";
+import { CELL_SIZE } from "../../../../constants";
+import { Notification } from "../../../Notification/Notification";
+import { UnpitchTent } from "../../activities/UnpitchTent";
 import { Guest } from "../Guest/Guest";
 import { Site } from "../Site/Site";
 import { Tent } from "../Tent/Tent";
@@ -9,34 +12,46 @@ export class Group {
   guests = new Set<Guest>();
   campsite: Site | null = null;
   tents = new Set<Tent>();
-  currentDuration: number; // How long has this group been in the park
-  targetDuration: number; // How long until departure
+  currentStay: number; // How long has this group been in the park
+  targetStay: number; // How long until departure
   constructor(scene: MainScene, col: number, row: number) {
     this.scene = scene;
-    const amountOfPeople = getRandomInt(1, 6);
+    const groupSize = getRandomInt(1, 5);
 
-    for (let i = 0; i < amountOfPeople; i++) {
+    for (let i = 0; i < groupSize; i++) {
       const guest = new Guest(this.scene, this, col, row);
+      guest.findEmptyCell(true);
       this.guests.add(guest);
     }
     this.divideOverTents();
-    this.currentDuration = 0;
-    this.targetDuration = getRandomInt(1, 8);
+    this.currentStay = 0;
+    this.targetStay = getRandomInt(1, 15);
+    //TODO targetStay will decrease when guests are unhappy and vice versa
     this.scene.recreation.groups.add(this);
 
     if (this.scene.recreation.reception) {
       this.goto(
-        this.scene.recreation.reception.x +
-          this.scene.recreation.reception.width / 2,
-        this.scene.recreation.reception.y +
-          this.scene.recreation.reception.height / 2
+        Math.floor(this.scene.recreation.reception.x / CELL_SIZE),
+        Math.floor(this.scene.recreation.reception.y / CELL_SIZE)
+      );
+    }
+  }
+  payment() {
+    if (this.campsite) {
+      this.scene.client.inventory.money += this.campsite.pricePerDay;
+      const guest = Array.from(this.guests)[0];
+      new Notification(
+        this.scene,
+        `+ ƒ ${this.campsite.pricePerDay},-`,
+        guest.x,
+        guest.y
       );
     }
   }
 
-  goto(x: number, y: number) {
+  goto(col: number, row: number) {
     for (const guest of this.guests) {
-      guest.goto(x, y);
+      guest.goto(col, row);
     }
   }
   divideOverTents() {
@@ -56,16 +71,35 @@ export class Group {
       // Deduct the part value from the remaining number
       amount -= actualPartValue;
     }
-    console.log(tents);
 
     const guestArray = Array.from(this.guests);
-    for (const tentBuddies of tents) {
-      const tentGroup = new Set<Guest>();
-      for (let i = 0; i < tentBuddies; i++) {
+    for (const amountInTent of tents) {
+      const tentBuddies = new Set<Guest>();
+      for (let i = 0; i < amountInTent; i++) {
         const guest = guestArray.shift();
-        if (guest) tentGroup.add(guest);
+        if (guest) tentBuddies.add(guest);
       }
-      this.tents.add(new Tent(this.scene, tentGroup));
+      this.tents.add(new Tent(this.scene, tentBuddies));
+    }
+  }
+  leave() {
+    console.log(this.tents);
+    console.log("We are outta here");
+    if (this.campsite) {
+      this.campsite.occupants = null;
+    }
+
+    for (const tent of this.tents) {
+      console.log("This tent is placed at", tent.col, tent.row);
+      if (tent.isPitched) {
+        new UnpitchTent(
+          this.scene,
+          tent,
+          tent.occupants,
+          tent.col ?? 0,
+          tent.row ?? 0
+        );
+      }
     }
   }
   remove() {

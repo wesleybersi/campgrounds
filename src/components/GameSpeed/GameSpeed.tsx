@@ -16,9 +16,6 @@ const GameSpeed = () => {
   const phase = scene.timeOfDay;
   const progress = (phase / lengthOfDay) * 100;
 
-  const totalCells = scene.colCount * scene.rowCount;
-  const aspectRatio = totalCells / scene.colCount;
-
   const icons = [
     <IconPause size={iconSize} />,
     <IconPlay size={iconSize} />,
@@ -49,7 +46,7 @@ const GameSpeed = () => {
         ))}
       </div>
       <div className={styles.time}>
-        <span style={{ width: progress }} />
+        <span style={{ width: `${progress}%` }} />
         <p>{scene.currentDay}</p>
       </div>
     </div>

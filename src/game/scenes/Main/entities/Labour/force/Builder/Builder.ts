@@ -1,28 +1,34 @@
+import { absolutePos } from "../../../../../../utils/helper-functions";
 import MainScene from "../../../../MainScene";
+
 import { Agent } from "../../../Agent/Agent";
-import { Blueprint } from "./tasks/Blueprint";
+import { Task } from "../../entities/Task/Task";
 
 export class Builder extends Agent {
-  task: Blueprint | null = null;
+  task: Task | null = null;
+  hat: Phaser.GameObjects.Sprite;
   constructor(scene: MainScene, col: number, row: number) {
     super(scene, col, row);
     this.scene = scene;
-    this.setTint(0xd3bd03);
 
+    this.hat = this.scene.add
+      .sprite(absolutePos(col), absolutePos(row), "helmet")
+      .setTint(0xd3bd03)
+      .setOrigin(0.5, 0.6);
     scene.labour.workers.add(this);
   }
   update(delta: number) {
+    this.hat.x = this.x;
+    this.hat.y = this.y;
+    this.hat.setDepth(this.depth + 2);
+
     if (this.task) {
-      //TODO Proper collision detection
-      if (
-        Math.abs(this.x - this.task.x) < 24 &&
-        Math.abs(this.y - this.task.y) < 24
-      ) {
+      if (this.col === this.task.col && this.row === this.task.row) {
         this.task.advance(delta);
       } else {
         if (this.path.length === 0) {
-          this.goto(this.task.x, this.task.y);
-          return; // Overrule super
+          this.goto(this.task.col, this.task.row);
+          return; // Overrule super, so no random movement
         }
       }
     }

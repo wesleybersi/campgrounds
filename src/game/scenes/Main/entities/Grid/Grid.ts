@@ -13,6 +13,7 @@ import { Agent } from "../Agent/Agent";
 import { Area } from "../Area/Area";
 import { Rock } from "./entities/Rock/Rock";
 import { Tree, treeSets } from "./entities/Tree/Tree";
+import { Flower } from "./entities/Flower/Flower";
 
 export class Grid {
   scene: MainScene;
@@ -89,6 +90,19 @@ export class Grid {
     for (let i = 0; i < rockAmount; i++) {
       const { row, col } = this.getRandomEmptyCell();
       new Rock(this, col, row);
+    }
+
+    //ANCHOR Rocks
+    const minFlowers = Math.floor(
+      (this.scene.colCount + this.scene.rowCount) / 6
+    );
+    const maxFlowers = Math.floor(
+      (this.scene.colCount + this.scene.rowCount) / 2
+    );
+    const flowerAmount = getRandomInt(minFlowers, maxFlowers);
+    for (let i = 0; i < flowerAmount; i++) {
+      const { row, col } = this.getRandomEmptyCell();
+      new Flower(this, col, row, true);
     }
 
     this.pathFinder = new AStarFinder({

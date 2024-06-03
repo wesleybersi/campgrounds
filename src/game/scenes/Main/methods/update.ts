@@ -1,17 +1,18 @@
 import MainScene from "../MainScene";
+import { Flower } from "../entities/Grid/entities/Flower/Flower";
 import { Tree } from "../entities/Grid/entities/Tree/Tree";
 
 export default function update(this: MainScene, _: number, delta: number) {
-  if (!this.hasLoaded) return;
   this.reactCallback(this);
-  if (this.gameSpeed === 0) return;
 
   delta /= 1000;
+  const staticDelta = delta;
   delta *= this.gameSpeed;
   this.delta = delta;
 
   //First update client state
-  this.client.update(delta);
+  this.client.update(delta, staticDelta);
+  if (this.gameSpeed === 0) return;
   //Then grid state
   this.grid.update(delta);
 
@@ -31,32 +32,40 @@ export default function update(this: MainScene, _: number, delta: number) {
     this.timeOfDay >= Math.floor(this.framesPerDay / 2) &&
     this.timeOfDay - this.gameSpeed < Math.floor(this.framesPerDay / 2)
   ) {
-    console.count("ebening");
     this.isEvening = true;
-
-    //Everyone goes to bed
-    for (const guest of this.recreation.guests) {
-      if (!guest.group.campsite) continue;
-      // guest.goto(guest.group.campsite.x, guest.group.campsite.y);
-      guest.enterTent();
-    }
-
-    for (const worker of this.labour.workers) {
-      // worker.goHome();
-    }
   }
 
   if (this.timeOfDay >= this.framesPerDay) {
+    //ANCHOR New day
+    for (const row of this.grid.objectMatrix) {
+      for (const obj of row) {
+        if (obj instanceof Flower) {
+          obj.grow();
+        }
+      }
+    }
+
+    for (const group of this.recreation.groups) {
+      group.payment();
+      let allTentsPitched = true;
+      for (const tent of group.tents) {
+        if (!tent.isPitched) {
+          allTentsPitched = false;
+        }
+      }
+      if (!allTentsPitched) continue;
+
+      group.currentStay++;
+      if (group.currentStay >= group.targetStay) {
+        group.leave();
+      }
+    }
+
     console.count("new day");
     //ANCHOR New day
     this.timeOfDay = 0;
     this.isEvening = false;
     this.currentDay++;
-
-    for (const guest of this.recreation.guests) {
-      if (!guest.group.campsite) continue;
-      guest.exitTent();
-    }
 
     for (const agent of this.labour.workers) {
       agent.daysInService++;
@@ -67,10 +76,6 @@ export default function update(this: MainScene, _: number, delta: number) {
           obj.grow();
         }
       }
-    }
-
-    for (const group of this.recreation.groups) {
-      group.currentDuration++;
     }
   }
 

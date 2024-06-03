@@ -1,4 +1,5 @@
 import MainScene from "../../../../MainScene";
+import { CELL_SIZE } from "../../../../constants";
 import { Area } from "../../../Area/Area";
 import { Group } from "../Group/Group";
 
@@ -13,7 +14,10 @@ export class Reception extends Area {
     super(scene, x, y, width, height);
     for (const group of this.scene.recreation.groups) {
       if (!group.campsite) {
-        group.goto(this.x + this.width / 2, this.y + this.height / 2);
+        group.goto(
+          Math.floor(this.x / CELL_SIZE),
+          Math.floor(this.y / CELL_SIZE)
+        );
       }
     }
     this.scene.recreation.reception = this;

@@ -33,6 +33,11 @@ export class Recreation {
     //     break;
     //   }
     // }
+    for (const group of this.groups) {
+      if (group.guests.size === 0) {
+        this.groups.delete(group);
+      }
+    }
   }
   // allocateGroup(group: Group) {
   //   for (const site of this.sites) {

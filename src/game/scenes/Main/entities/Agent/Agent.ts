@@ -1,5 +1,9 @@
-import { Vector } from "../../../../types";
-import { getRandomInt, oneIn } from "../../../../utils/helper-functions";
+import { Position } from "../../../../types";
+import {
+  getRandomInt,
+  oneIn,
+  absolutePos,
+} from "../../../../utils/helper-functions";
 import MainScene from "../../MainScene";
 import { CELL_SIZE } from "../../constants";
 import { createAnimations } from "./animation/create-animations";
@@ -8,63 +12,52 @@ import { goto } from "./methods/goto";
 import { move } from "./methods/move";
 import { generateRandomName } from "./methods/random-name";
 import { redirect } from "./methods/redirect";
+import { wander } from "./methods/wander";
 
 export class Agent extends Phaser.GameObjects.Sprite {
+  isActive = true;
   scene: MainScene;
-
+  col: number;
+  row: number;
   daysInService = 0;
-  didMove = false;
-  movementSpeed = 25;
-  target: Vector | null = null;
-  path: Vector[] = [];
+  isMoving = false;
+  movementDuration = 8;
+  target: Position | null = null;
+  path: Position[] = [];
   name = "";
+  characterIndex = getRandomInt(16);
   description: string[] = ["General use agent without a cause"];
+  facing: "up" | "down" | "left" | "right" = "down";
 
-  goto: (x: number, y: number) => boolean = goto;
+  goto: (col: number, row: number) => boolean = goto;
   move: (delta: number) => void = move;
-  findEmptyCell: () => void = findEmptyCell;
+  wander: () => void = wander;
+  findEmptyCell: (instant?: boolean) => void = findEmptyCell;
   redirect: () => void = redirect;
   generateRandomName: () => void = generateRandomName;
 
   createAnimations: () => void = createAnimations;
   constructor(scene: MainScene, col: number, row: number) {
-    super(
-      scene,
-      col * CELL_SIZE + CELL_SIZE / 2,
-      row * CELL_SIZE + CELL_SIZE / 2,
-      "agent",
-      0
-    );
+    super(scene, absolutePos(col), absolutePos(row), "chars", 0);
     this.scene = scene;
-    // this.setAlpha(0.5);
-    // this.setFillStyle(0x222222);
-    // this.setStrokeStyle(CELL_SIZE / 10, 0xffffff);
+    this.col = col;
+    this.row = row;
     this.generateRandomName();
     this.createAnimations();
-    this.setScale(0.5);
     this.scene.allAgents.add(this);
     this.scene.add.existing(this);
   }
   update(delta: number) {
-    this.setDepth(Math.floor(this.y / CELL_SIZE));
-    if (this.path.length > 0) {
-      this.move(delta);
-    } else {
-      this.setFlipX(false);
-      this.anims.restart();
-      this.anims.pause();
+    this.setDepth(this.y);
 
-      //Random movement
-      const movementProbability = 300;
-      if (oneIn(movementProbability)) {
-        const maxDistance = 64;
-        const xDistance = getRandomInt(maxDistance);
-        const yDistance = getRandomInt(maxDistance);
-        const x = getRandomInt(this.x - xDistance, this.x + xDistance);
-        const y = getRandomInt(this.y - yDistance, this.y + yDistance);
-        this.goto(x, y);
-        return;
-      }
+    if (this.scene.grid.collisionMap[this.row][this.col] === 1) {
+      this.findEmptyCell(true);
+    }
+
+    if (this.path.length > 0) {
+      if (!this.isMoving) this.move(delta);
+    } else {
+      this.wander();
     }
   }
   goHome() {
@@ -72,13 +65,14 @@ export class Agent extends Phaser.GameObjects.Sprite {
   }
   select() {
     this.scene.client.selected = this;
-    this.setAlpha(1);
   }
   deselect() {
     this.scene.client.selected = null;
-    this.setAlpha(0.5);
   }
   follow() {
     this.scene.cameras.main.startFollow(this);
+  }
+  remove() {
+    this.destroy();
   }
 }
