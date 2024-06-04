@@ -1,7 +1,7 @@
 .wrapper {
   position: absolute;
-  min-width: 700px;
-  max-width: 800px;
+  // min-width: 500px;
+  max-width: 600px;
   left: 0.5rem;
   display: flex;
   flex-direction: column;
@@ -15,23 +15,7 @@
   section {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     gap: 1rem;
-    .foresters {
-      display: grid;
-      grid-template-columns: repeat(8, 1fr);
-      grid-gap: 0.5rem;
-      .profile {
-        aspect-ratio: 1;
-        width: 3rem;
-        height: 3rem;
-        background: #ffffff88;
-      }
-    }
-    .orders {
-      display: flex;
-      gap: 0.5rem;
-    }
   }
   .tabs {
     position: absolute;
@@ -51,8 +35,6 @@
       place-content: center;
       font-size: 0.8rem;
       transition: height 250ms ease;
-      word-break: keep-all;
-      text-wrap: nowrap;
     }
   }
 }

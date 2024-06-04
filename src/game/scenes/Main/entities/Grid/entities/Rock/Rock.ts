@@ -1,10 +1,6 @@
-import {
-  absolutePos,
-  getRandomInt,
-} from "../../../../../../utils/helper-functions";
+import { getRandomInt } from "../../../../../../utils/helper-functions";
 import { CELL_SIZE } from "../../../../constants";
-import { Task } from "../../../Labour/entities/Task/Task";
-import { Notification } from "../../../Notification/Notification";
+
 import { Grid } from "../../Grid";
 
 export class Rock extends Phaser.GameObjects.Image {
@@ -13,6 +9,7 @@ export class Rock extends Phaser.GameObjects.Image {
   row: number;
   resources = 25;
   markedForHarvest = false;
+  harvestMultiplier = 0.1; // TODO Depends on size
   constructor(grid: Grid, col: number, row: number) {
     super(
       grid.scene,
@@ -28,33 +25,9 @@ export class Rock extends Phaser.GameObjects.Image {
     this.setDepth(this.y);
     this.grid.scene.add.existing(this);
   }
-  markForHarvest() {
-    if (this.markedForHarvest) return;
-    this.markedForHarvest = true;
-    this.setTint(0xff8888);
-    new Task(
-      this.grid.scene,
-      "forester",
-      this.col,
-      this.row + 1,
-      0.1,
-      undefined,
-      () => {
-        const resources = this.harvest();
-
-        new Notification(
-          this.grid.scene,
-          `+${resources} stone`,
-          absolutePos(this.col),
-          absolutePos(this.row)
-        );
-        this.grid.scene.client.inventory.materials.wood += resources;
-        this.remove();
-      }
-    );
-  }
 
   harvest() {
+    // new Resources("Wood")
     return this.resources;
   }
   remove() {

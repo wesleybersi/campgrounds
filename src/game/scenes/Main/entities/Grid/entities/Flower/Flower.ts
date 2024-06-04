@@ -21,6 +21,7 @@ export class Flower extends Phaser.GameObjects.Image {
   markedForHarvest = false;
   growth = 0;
   lifeCycle = getRandomInt(8, 20);
+  harvestMultiplier = 0.5;
   constructor(grid: Grid, col: number, row: number, randomGrowth?: boolean) {
     super(
       grid.scene,
@@ -55,23 +56,6 @@ export class Flower extends Phaser.GameObjects.Image {
     this.growth++;
     if (this.growth >= 5) this.growth = 5;
     this.setFrame(this.growth);
-  }
-  markForHarvest() {
-    if (!this.markedForHarvest) {
-      this.markedForHarvest = true;
-      this.setTint(0xff0000);
-      new Task(
-        this.grid.scene,
-        "forester",
-        this.col,
-        this.row,
-        0.5,
-        undefined,
-        () => {
-          this.harvest();
-        }
-      );
-    }
   }
 
   harvest() {

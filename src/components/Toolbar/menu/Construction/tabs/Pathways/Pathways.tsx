@@ -2,27 +2,21 @@ import styles from "./styles.module.scss";
 import useStore from "../../../../../../store/store";
 import { GiScythe as IconHarvest } from "react-icons/gi";
 import { FaTree as IconPlantTree } from "react-icons/fa";
-import { LuFlower2 as IconPlantFlower } from "react-icons/lu";
-import { FaGripLines as IconHedge } from "react-icons/fa6";
+
 import { useEffect } from "react";
 
-const Orders = () => {
+const Pathways = () => {
   const { scene } = useStore();
   const iconSize = "24px";
   const orders = [
     {
-      order: "harvest",
+      order: "dirt",
       icon: <IconHarvest size={iconSize} />,
     },
     {
-      order: "plant tree",
+      order: "wooden planks",
       icon: <IconPlantTree size={iconSize} />,
     },
-    {
-      order: "plant flower",
-      icon: <IconPlantFlower size={iconSize} />,
-    },
-    { order: "place hedge", icon: <IconHedge size={iconSize} /> },
   ];
 
   useEffect(() => {
@@ -50,11 +44,12 @@ const Orders = () => {
               if (scene.client.command.order === order) {
                 scene.client.command.clear();
               } else {
-                scene.client.command.instruct("foresting", order);
+                scene.client.command.instruct("construction", order);
               }
             }}
           >
-            {icon}
+            {/* {icon} */}
+            {order.slice(0, 5)}
           </button>
         ))}
       </div>
@@ -62,4 +57,4 @@ const Orders = () => {
   );
 };
 
-export default Orders;
+export default Pathways;

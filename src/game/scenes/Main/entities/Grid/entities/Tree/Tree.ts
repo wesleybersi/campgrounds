@@ -27,9 +27,7 @@ export class Tree extends Phaser.GameObjects.Sprite {
   col: number;
   growth = 0.1;
   maxResources = 25;
-  markedForHarvest = false;
-  harvestTarget: Task | null = null;
-
+  harvestMultiplier = 0.1; // TODO Depends on size
   constructor(
     grid: Grid,
     forest: Forest | null,
@@ -88,36 +86,7 @@ export class Tree extends Phaser.GameObjects.Sprite {
     this.growth = Math.min(this.growth + 0.025, 1);
     // this.setSize(this.maxSize * this.growth, this.maxSize * this.growth);
   }
-  markForHarvest() {
-    if (this.markedForHarvest) return;
-    this.markedForHarvest = true;
-    this.setTint(0xff8888);
 
-    this.harvestTarget = new Task(
-      this.scene,
-      "forester",
-      this.col,
-      this.row,
-      0.1,
-      undefined,
-      () => {
-        const resources = this.harvest();
-        new Notification(
-          this.scene,
-          `+${resources} wood`,
-          absolutePos(this.col),
-          absolutePos(this.row)
-        );
-        this.scene.client.inventory.materials.wood += resources;
-        this.remove();
-      }
-    );
-  }
-  unmarkForHarvest() {
-    this.markedForHarvest = false;
-    this.clearTint();
-    this.harvestTarget = null;
-  }
   harvest() {
     return Math.floor(this.maxResources * this.growth);
   }

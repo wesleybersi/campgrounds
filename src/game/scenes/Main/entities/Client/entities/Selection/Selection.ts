@@ -3,32 +3,88 @@ import { Client } from "../../Client";
 
 export class Selection extends Phaser.GameObjects.Rectangle {
   client: Client;
-  type: "single" | "line" | "rectangle" | "fill" = "fill";
-  highlighted: { col: number; row: number; graphic: Phaser.GameObjects.Arc }[] =
-    [];
-  //TODO Rectangle selections for hedges and walls
+  button: "left" | "right" = "left";
   rect: {
     x: number;
     y: number;
     width: number;
     height: number;
   } = { x: 0, y: 0, width: 0, height: 0 };
-  constructor(client: Client, x: number, y: number) {
+
+  constructor(client: Client, x: number, y: number, button: "left" | "right") {
     super(client.scene, x, y, 1, 1);
     this.client = client;
+    this.button = button;
     this.setStrokeStyle(2, 0xffffff);
     this.setFillStyle(0x7788ff);
-    this.setAlpha(0.25);
-    this.setDepth(100);
+    this.setAlpha(0.5);
+    this.setDepth(this.client.scene.topDepth);
     this.client.selection = this;
     this.client.scene.add.existing(this);
     this.setOrigin(0, 0);
   }
-  select(x: number, y: number) {
-    const width = x - this.x;
-    const height = y - this.y;
-    this.setSize(width, height);
-    // console.log(this.x + width, this.y + height);
+  select(x: number, y: number, button: "left" | "right") {
+    if (button === "left") {
+      this.button = "left";
+      switch (this.client.command.selectionType) {
+        case "none":
+          this.setSize(0, 0);
+          break;
+        case "free":
+          {
+            const width = x - this.x;
+            const height = y - this.y;
+            this.setSize(width, height);
+            if (button === "left") {
+              this.setStrokeStyle(1, 0xffffff);
+              this.setFillStyle(0x7788ff);
+              this.button = "left";
+            }
+          }
+          break;
+        case "line":
+          break;
+        case "grid":
+          {
+            const width = x - this.x;
+            const height = y - this.y;
+            this.setPosition(
+              Math.floor(this.x / CELL_SIZE) * CELL_SIZE,
+              Math.floor(this.y / CELL_SIZE) * CELL_SIZE
+            );
+            this.setSize(
+              Math.ceil(width / CELL_SIZE) * CELL_SIZE - 1,
+              Math.ceil(height / CELL_SIZE) * CELL_SIZE - 1
+            );
+          }
+          break;
+        case "grid-empty":
+          {
+            const width = x - this.x;
+            const height = y - this.y;
+            this.setPosition(
+              Math.floor(this.x / CELL_SIZE) * CELL_SIZE,
+              Math.floor(this.y / CELL_SIZE) * CELL_SIZE
+            );
+            this.setSize(
+              Math.ceil(width / CELL_SIZE) * CELL_SIZE - 1,
+              Math.ceil(height / CELL_SIZE) * CELL_SIZE - 1
+            );
+          }
+          break;
+
+        // switch (
+      }
+      // ) {
+      // }
+    } else if (button === "right") {
+      this.button = "right";
+      const width = x - this.x;
+      const height = y - this.y;
+      this.setSize(width, height);
+      this.setStrokeStyle(1, 0xffffff);
+      this.setFillStyle(0xff8888);
+    }
   }
   getSelectedTiles() {
     const topLeft = {

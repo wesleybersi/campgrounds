@@ -24,15 +24,10 @@ export class Client {
   };
 
   overlay: "area" | null = "area";
-
-  // commands = {
-  //   areas: {
-  //     command: null | "clear" | "reception" | "campsite" = null
-  //   }
-  // },
   orders = [
     "",
     "guests",
+    "bulldozer",
     "harvest",
     "plant tree",
     "plant flower",
@@ -46,11 +41,14 @@ export class Client {
     "concrete",
     "water",
   ];
+  isBulldozing = false;
   order = "";
-  command = new Command(this);
+  command: Command;
 
-  selected: Agent | Site | null = null;
+  // selected: Agent | Site | null = null;
   selection: Selection | null = null;
+  selectionType: "absolute" | "rect" | "rect-empty" | "line" = "absolute";
+
   inventory: Inventory;
 
   //Events
@@ -71,6 +69,7 @@ export class Client {
       right: false,
     };
     this.inventory = new Inventory(this);
+    this.command = new Command(this);
 
     this.pointerEvents();
     this.keyboardEvents();

@@ -59,10 +59,16 @@ export class Labour {
           }
 
           task.worker = nearestWorker;
-          const routePossible = task.worker.goto(task.col, task.row);
-          if (!routePossible) {
-            nearestWorker.task = null;
-            assignTask(task, nearestWorker);
+          const initialRoutePossible = task.worker.goto(task.col, task.row);
+          if (!initialRoutePossible) {
+            const vicinityTarget = task.getVicinityInstead();
+            if (vicinityTarget) {
+              task.worker.goto(vicinityTarget.col, vicinityTarget.row);
+            } else {
+              //No route possible
+              //TODO Push to end of queue
+              task.remove();
+            }
           }
         }
       }
@@ -78,7 +84,8 @@ export class Labour {
     }
   }
   removeTask(markedTask: Task) {
-    this.taskGrid[markedTask.row][markedTask.col] = null;
+    this.taskGrid[markedTask.initialRow][markedTask.initialCol] = null;
+
     const updatedTasks = this.queuedTasks.filter((task) => task !== markedTask);
     this.queuedTasks = updatedTasks;
   }

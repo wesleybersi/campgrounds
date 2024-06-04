@@ -1,5 +1,4 @@
 import { absolutePos } from "../../../../utils/helper-functions";
-import MainScene from "../../MainScene";
 import { CELL_SIZE } from "../../constants";
 import { Task } from "../Labour/entities/Task/Task";
 import { Activity } from "../Recreation/entities/Activity/Activity";

@@ -28,14 +28,18 @@ interface Props {
 
 const Areas: React.FC<Props> = ({ bottom }) => {
   const { scene } = useStore();
-  const tabs = [
+  const iconSize = "24px";
+  const orders = [
     {
-      name: "Orders",
+      order: "reception",
+      icon: <IconReception size={iconSize} />,
     },
-    { name: "Staff" },
-    // { name: "Trees" },
-    // { name: "Flowers" },
+    {
+      order: "campsite",
+      icon: <IconCampground size={iconSize} />,
+    },
   ];
+
   const [tabIndex, setTabIndex] = useState<number>(0);
 
   useEffect(() => {
@@ -59,50 +63,22 @@ const Areas: React.FC<Props> = ({ bottom }) => {
           go.
         </p>
         <div className={styles.orders}>
-          <button
-            style={{
-              backgroundColor: scene.client.order === "cancel" ? "#ffffff" : "",
-              color: scene.client.order === "cancel" ? "#000000" : "",
-              width: "3rem",
-              height: "3rem",
-            }}
-            onClick={() =>
-              (scene.client.order =
-                scene.client.order === "cancel" ? "" : "cancel")
-            }
-          >
-            <IconCancel size="24px" />
-          </button>
-          <button
-            style={{
-              backgroundColor:
-                scene.client.order === "reception" ? "#ffffff" : "",
-              color: scene.client.order === "reception" ? "#000000" : "",
-              width: "3rem",
-              height: "3rem",
-            }}
-            onClick={() =>
-              (scene.client.order =
-                scene.client.order === "reception" ? "" : "reception")
-            }
-          >
-            <IconReception size="24px" />
-          </button>{" "}
-          <button
-            style={{
-              backgroundColor:
-                scene.client.order === "campsite" ? "#ffffff" : "",
-              color: scene.client.order === "campsite" ? "#000000" : "",
-              width: "3rem",
-              height: "3rem",
-            }}
-            onClick={() =>
-              (scene.client.order =
-                scene.client.order === "campsite" ? "" : "campsite")
-            }
-          >
-            <IconCampground size="24px" />
-          </button>
+          {orders.map(({ order, icon }) => (
+            <button
+              style={{
+                backgroundColor:
+                  scene.client.command.order === order ? "#ffffff" : "",
+                color: scene.client.command.order === order ? "#000000" : "",
+                width: "3rem",
+                height: "3rem",
+              }}
+              onClick={() => {
+                scene.client.command.instruct("area", order);
+              }}
+            >
+              {icon}
+            </button>
+          ))}
         </div>
       </section>
       {/* )} */}

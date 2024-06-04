@@ -35,7 +35,7 @@ const Game: React.FC<Props> = ({ callback }) => {
       render: {
         antialias: true,
         pixelArt: true,
-        roundPixels: false,
+        roundPixels: true,
       },
     };
 
