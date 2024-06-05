@@ -4,7 +4,8 @@ import {
 } from "../../../../../../utils/helper-functions";
 import MainScene from "../../../../MainScene";
 import { CELL_SIZE } from "../../../../constants";
-import { Task } from "../../../Labour/entities/Task/Task";
+import { Resource } from "../../../Staff/entities/Resource/Resource";
+import { Task } from "../../../Staff/entities/Task/Task";
 
 import { Notification } from "../../../Notification/Notification";
 import { Grid } from "../../Grid";
@@ -33,13 +34,16 @@ export class Tree extends Phaser.GameObjects.Sprite {
     forest: Forest | null,
     col: number,
     row: number,
-    set: number
+    set: number,
+    specificIndex?: number
   ) {
     super(
       grid.scene,
       col * CELL_SIZE + CELL_SIZE / 2,
       row * CELL_SIZE + CELL_SIZE / 2,
-      treeSets[set][getRandomInt(treeSets[set].length)]
+      specificIndex
+        ? treeSets.flat()[specificIndex]
+        : treeSets[set][getRandomInt(treeSets[set].length)]
     );
     this.scene = grid.scene;
     this.forest = forest;
@@ -80,6 +84,12 @@ export class Tree extends Phaser.GameObjects.Sprite {
     this.on("pointerover", () => {
       console.log("oi?");
     });
+    this.scene.events.on("hide trees", () => {
+      this.setAlpha(0.25);
+    });
+    this.scene.events.on("show trees", () => {
+      this.setAlpha(1);
+    });
   }
 
   grow() {
@@ -88,6 +98,13 @@ export class Tree extends Phaser.GameObjects.Sprite {
   }
 
   harvest() {
+    new Resource(
+      this.scene,
+      "wood",
+      getRandomInt(10, this.maxResources),
+      this.col,
+      this.row
+    );
     return Math.floor(this.maxResources * this.growth);
   }
   remove() {

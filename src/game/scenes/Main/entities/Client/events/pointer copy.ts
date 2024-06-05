@@ -1,8 +1,8 @@
 import { CELL_SIZE, MAX_ZOOM, MIN_ZOOM, ZOOM_FACTOR } from "../../../constants";
 import { Tree, treeSets } from "../../Grid/entities/Tree/Tree";
 import { Wall } from "../../Grid/entities/Wall/Wall";
-import { Forester } from "../../Labour/force/Forester/Forester";
-import { Builder } from "../../Labour/force/Builder/Builder";
+import { Forester } from "../../Staff/force/Forester/Forester";
+import { Builder } from "../../Staff/force/Builder/Builder";
 
 import { Client } from "../Client";
 import { Selection } from "../entities/Selection/Selection";
@@ -12,7 +12,7 @@ import { Reception } from "../../Recreation/entities/Reception/Reception";
 import { getRandomInt } from "../../../../../utils/helper-functions";
 import { Rock } from "../../Grid/entities/Rock/Rock";
 
-import { Task } from "../../Labour/entities/Task/Task";
+import { Task } from "../../Staff/entities/Task/Task";
 
 import { Flower } from "../../Grid/entities/Flower/Flower";
 
@@ -90,7 +90,7 @@ export function pointerEvents(this: Client) {
           break;
         case "plant tree":
           if (pointer.leftButtonDown()) {
-            if (this.scene.labour.taskGrid[row][col]) break;
+            if (this.scene.staff.taskMatrix[row][col]) break;
             new Task(this.scene, "forester", col, row, 0.1, undefined, () => {
               new Tree(
                 this.scene.grid,
@@ -104,7 +104,7 @@ export function pointerEvents(this: Client) {
           break;
         case "plant flower":
           if (pointer.leftButtonDown()) {
-            if (this.scene.labour.taskGrid[row][col]) break;
+            if (this.scene.staff.taskMatrix[row][col]) break;
             new Task(this.scene, "forester", col, row, 0.1, undefined, () => {
               new Flower(this.scene.grid, col, row);
             });
@@ -133,7 +133,7 @@ export function pointerEvents(this: Client) {
 
       if (this.isBulldozing && this.selection.button === "left") {
         for (const { col, row } of cells) {
-          const taskInPlace = this.scene.labour.taskGrid[row][col];
+          const taskInPlace = this.scene.staff.taskMatrix[row][col];
           if (taskInPlace) {
             taskInPlace.remove();
             continue;
@@ -167,7 +167,7 @@ export function pointerEvents(this: Client) {
 
       if (this.selection.button === "right") {
         for (const { col, row } of cells) {
-          const taskInPlace = this.scene.labour.taskGrid[row][col];
+          const taskInPlace = this.scene.staff.taskMatrix[row][col];
           if (taskInPlace) {
             taskInPlace.remove();
           }
@@ -231,7 +231,7 @@ export function pointerEvents(this: Client) {
               break;
             case "cancel":
               {
-                const task = this.scene.labour.taskGrid[row][col];
+                const task = this.scene.staff.taskMatrix[row][col];
                 if (task) task.remove();
 
                 const obj = this.scene.grid.objectMatrix[row][col];
@@ -242,7 +242,7 @@ export function pointerEvents(this: Client) {
               break;
             case "dirt":
               if (pointer.leftButtonReleased()) {
-                if (this.scene.labour.taskGrid[row][col]) break;
+                if (this.scene.staff.taskMatrix[row][col]) break;
 
                 new Task(
                   this.scene,
@@ -283,7 +283,7 @@ export function pointerEvents(this: Client) {
             case "hedge":
               if (pointer.leftButtonReleased()) {
                 const objInPlace = this.scene.grid.objectMatrix[row][col];
-                const taskInPlace = this.scene.labour.taskGrid[row][col];
+                const taskInPlace = this.scene.staff.taskMatrix[row][col];
                 if (this.keys.meta) {
                   // if (taskInPlace) taskInPlace.remove();
                   // if (

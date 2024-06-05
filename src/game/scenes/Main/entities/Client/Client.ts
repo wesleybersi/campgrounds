@@ -6,7 +6,7 @@ import { Command } from "./entities/Command/Command";
 
 import { Inventory } from "./entities/Inventory/Inventory";
 import { Selection } from "./entities/Selection/Selection";
-import { forestingPointerDown } from "./controllers/foresting/events";
+
 import { keyboardEvents } from "./events/keyboard";
 import { pointerEvents } from "./events/pointer";
 
@@ -23,26 +23,8 @@ export class Client {
     right: boolean;
   };
 
+  hideTrees = false;
   overlay: "area" | null = "area";
-  orders = [
-    "",
-    "guests",
-    "bulldozer",
-    "harvest",
-    "plant tree",
-    "plant flower",
-    "floor planks",
-    "cancel",
-    "campsite",
-    "reception",
-    "wooden wall",
-    "hedge",
-    "dirt",
-    "concrete",
-    "water",
-  ];
-  isBulldozing = false;
-  order = "";
   command: Command;
 
   // selected: Agent | Site | null = null;
@@ -55,7 +37,6 @@ export class Client {
   pointerEvents = pointerEvents;
   keyboardEvents = keyboardEvents;
 
-  forestingPointerDown = forestingPointerDown;
   constructor(scene: MainScene) {
     this.scene = scene;
     this.target = { row: -1, col: -1, x: -1, y: -1 };

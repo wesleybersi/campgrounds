@@ -4,6 +4,8 @@ import useStore from "../../../../store/store";
 
 import Staff from "./tabs/Staff/Staff";
 import Orders from "./tabs/Orders/Orders";
+import Trees from "./tabs/Trees/Trees";
+import Hedges from "./tabs/Hedges/Trees";
 
 interface Props {
   bottom: number;
@@ -13,9 +15,22 @@ const Foresting: React.FC<Props> = ({ bottom }) => {
   const { scene } = useStore();
   const tabs = [
     {
-      name: "Orders",
+      name: "Basic Orders",
       component: <Orders />,
     },
+    {
+      name: "Trees",
+      component: <Trees />,
+    },
+    {
+      name: "Hedges",
+      component: <Hedges />,
+    },
+    {
+      name: "Flowers",
+      component: <Orders />,
+    },
+
     { name: "Staff", component: <Staff /> },
   ];
   const [tabIndex, setTabIndex] = useState<number>(0);

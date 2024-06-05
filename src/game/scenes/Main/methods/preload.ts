@@ -13,6 +13,8 @@ import helmet from "../../../assets/characters/helmet.png";
 
 import tentA from "../../../assets/images/tents/tent-a-alt.png";
 
+import resourceLogs from "../../../assets/resources/logs.png";
+
 import hedge from "../../../assets/summer/walls/hedge.png";
 import treeA1 from "../../../assets/summer/objects/trees/a/tree-a1.png";
 import treeA2 from "../../../assets/summer/objects/trees/a/tree-a2.png";
@@ -166,6 +168,8 @@ export default function preload(this: MainScene) {
     frameWidth: 8,
     frameHeight: 16,
   });
+
+  this.load.image("resource-logs", resourceLogs);
 
   this.load.image("flower-1", flower1);
   this.load.image("flower-2", flower2);

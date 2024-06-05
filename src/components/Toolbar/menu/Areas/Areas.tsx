@@ -6,6 +6,7 @@ import { FaCampground as IconCampground } from "react-icons/fa";
 
 import { MdClear as IconCancel } from "react-icons/md";
 import { PiSignIn as IconReception } from "react-icons/pi";
+import { FaBoxesStacked as IconStorage } from "react-icons/fa6";
 
 interface Props {
   bottom: number;
@@ -30,6 +31,10 @@ const Areas: React.FC<Props> = ({ bottom }) => {
   const { scene } = useStore();
   const iconSize = "24px";
   const orders = [
+    {
+      order: "storage",
+      icon: <IconStorage size={iconSize} />,
+    },
     {
       order: "reception",
       icon: <IconReception size={iconSize} />,

@@ -1,5 +1,6 @@
 import { getRandomInt } from "../../../../../../utils/helper-functions";
 import { CELL_SIZE } from "../../../../constants";
+import { Resource } from "../../../Staff/entities/Resource/Resource";
 
 import { Grid } from "../../Grid";
 
@@ -27,7 +28,7 @@ export class Rock extends Phaser.GameObjects.Image {
   }
 
   harvest() {
-    // new Resources("Wood")
+    new Resource(this.grid.scene, "stone", this.resources, this.col, this.row);
     return this.resources;
   }
   remove() {

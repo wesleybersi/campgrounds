@@ -7,6 +7,7 @@ import Status from "./components/Status/Status";
 import Toolbar from "./components/Toolbar/Toolbar";
 import Game from "./game/game";
 import useStore from "./store/store";
+import Bulldozer from "./components/Bulldozer/Bulldozer";
 
 function App() {
   const { set, scene } = useStore();
@@ -32,6 +33,7 @@ function App() {
           <Status />
           <Toolbar />
           <GameSpeed />
+          <Bulldozer />
         </main>
       )}
     </div>

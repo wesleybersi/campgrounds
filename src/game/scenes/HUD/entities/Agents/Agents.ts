@@ -49,14 +49,12 @@ export class Agents {
       .setOrigin(0.5, 0);
   }
   update() {
-    const totalAgents = this.mainScene.labour.workers.size;
-    const availableAgents = Array.from(this.mainScene.labour.workers).filter(
-      (agent) => !agent.task
+    const totalAgents = this.mainScene.staff.workers.size;
+    const availableAgents = Array.from(this.mainScene.staff.workers).filter(
+      (agent) => !agent.taskQueue
     ).length;
 
     this.topText.setText(`${availableAgents}/${totalAgents}`);
-    this.bottomText.setText(
-      `${this.mainScene.labour.queuedTasks.length} tasks`
-    );
+    this.bottomText.setText(`${this.mainScene.staff.queuedTasks.length} tasks`);
   }
 }

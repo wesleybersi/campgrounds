@@ -21,7 +21,7 @@ export default function update(this: MainScene, _: number, delta: number) {
     agent.update(delta);
   }
   //Then ready agents for next cycle
-  this.labour.update(delta);
+  // this.staff.update(delta);
   this.recreation.update(delta);
 
   const camera = this.cameras.main;
@@ -67,7 +67,7 @@ export default function update(this: MainScene, _: number, delta: number) {
     this.isEvening = false;
     this.currentDay++;
 
-    for (const agent of this.labour.workers) {
+    for (const agent of this.staff.workers) {
       agent.daysInService++;
     }
     for (const row of this.grid.objectMatrix) {

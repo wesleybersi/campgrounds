@@ -1,6 +1,6 @@
 import { absolutePos } from "../../../../utils/helper-functions";
 import { CELL_SIZE } from "../../constants";
-import { Task } from "../Labour/entities/Task/Task";
+import { Task } from "../Staff/entities/Task/Task";
 import { Activity } from "../Recreation/entities/Activity/Activity";
 
 export class ProgressBar extends Phaser.GameObjects.Rectangle {

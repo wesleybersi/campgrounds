@@ -11,6 +11,14 @@ export function keyboardEvents(this: Client) {
       this.scene.cameras.main.stopFollow();
 
       switch (event.key) {
+        case "h":
+          this.hideTrees = !this.hideTrees;
+          if (this.hideTrees) {
+            this.scene.events.emit("hide trees");
+          } else {
+            this.scene.events.emit("show trees");
+          }
+          break;
         case "Meta":
           this.keys.meta = true;
           break;

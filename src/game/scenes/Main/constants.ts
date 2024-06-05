@@ -13,3 +13,5 @@ export const MAX_ZOOM = 12;
 
 //Sites
 export const PRICE_PER_CELL = 10;
+
+export const MAX_CARRY = 25;

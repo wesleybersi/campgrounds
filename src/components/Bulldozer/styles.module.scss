@@ -1,0 +1,13 @@
+.wrapper {
+  position: absolute;
+  bottom: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  button {
+    width: var(--btn-size);
+    height: var(--btn-size);
+    border-radius: 50%;
+  }
+}

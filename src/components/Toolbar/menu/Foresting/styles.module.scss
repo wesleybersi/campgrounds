@@ -1,7 +1,7 @@
 .wrapper {
   position: absolute;
-  // min-width: 500px;
-  max-width: 600px;
+  min-width: 500px;
+  // max-width: 600px;
   left: 0.5rem;
   display: flex;
   flex-direction: column;
@@ -12,6 +12,9 @@
   border-radius: 4px;
   backdrop-filter: blur(8px);
   border-top-left-radius: 0;
+  p {
+    max-width: 800px;
+  }
   section {
     display: flex;
     flex-direction: column;

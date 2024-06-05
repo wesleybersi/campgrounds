@@ -1,4 +1,6 @@
+import { Agent } from "http";
 import { CELL_SIZE, MAX_ZOOM, MIN_ZOOM, ZOOM_FACTOR } from "../../../constants";
+import { Guest } from "../../Recreation/entities/Guest/Guest";
 import { Client } from "../Client";
 import { Selection } from "../entities/Selection/Selection";
 
@@ -55,6 +57,17 @@ export function pointerEvents(this: Client) {
             this.target.col,
             this.target.row
           );
+        } else {
+          //Selecting things
+
+          this.scene.events.emit(
+            `${this.target.col},${this.target.row}`,
+            (agent: Agent) => {
+              if (agent instanceof Guest) {
+                console.log("Pong", agent);
+              }
+            }
+          );
         }
       }
     });
@@ -68,7 +81,7 @@ export function pointerEvents(this: Client) {
       if (this.selection?.button === "right") {
         const cells = this.selection.getSelectedTiles();
         for (const { col, row } of cells) {
-          const taskInPlace = this.scene.labour.taskGrid[row][col];
+          const taskInPlace = this.scene.staff.taskMatrix[row][col];
 
           if (taskInPlace) {
             taskInPlace.remove();

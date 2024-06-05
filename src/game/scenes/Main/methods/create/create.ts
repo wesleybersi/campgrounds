@@ -1,7 +1,7 @@
 import MainScene from "../../MainScene.ts";
 
 import { CELL_SIZE, INITIAL_ZOOM } from "../../constants.ts";
-import { Labour } from "../../entities/Labour/Labour.ts";
+import { Staff } from "../../entities/Staff/Staff.ts";
 import { Client } from "../../entities/Client/Client.ts";
 import { Grid } from "../../entities/Grid/Grid.ts";
 
@@ -15,7 +15,7 @@ export default function create(this: MainScene) {
     this.client = new Client(this);
     this.grid = new Grid(this, this.rowCount, this.colCount);
 
-    this.labour = new Labour(this);
+    this.staff = new Staff(this);
     this.recreation = new Recreation(this);
   };
 

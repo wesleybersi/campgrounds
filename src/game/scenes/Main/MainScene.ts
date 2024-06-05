@@ -2,7 +2,6 @@ import Phaser from "phaser";
 
 import preload from "./methods/preload";
 import create from "./methods/create/create";
-import BasicTilemap from "./entities/Grid/entities/Tilemap/tilemap";
 import LoadingScene from "../Loading/LoadingScene";
 
 import { CELL_SIZE } from "./constants";
@@ -11,11 +10,9 @@ import { pointerEvents } from "./entities/Client/events/pointer";
 import { keyboardEvents } from "./entities/Client/events/keyboard";
 import { Client } from "./entities/Client/Client";
 import { Grid } from "./entities/Grid/Grid";
-import { Builder } from "./entities/Labour/force/Builder/Builder";
-import { Labour } from "./entities/Labour/Labour";
+import { Staff } from "./entities/Staff/Staff";
 import { Agent } from "./entities/Agent/Agent";
 import { Recreation } from "./entities/Recreation/Recreation";
-import { NightOverlay } from "./entities/NightOverlay";
 
 export const createMainScene = (callback: (scene: MainScene) => void) => {
   return new MainScene(callback);
@@ -38,7 +35,7 @@ export default class MainScene extends Phaser.Scene {
   height: number;
 
   allAgents = new Set<Agent>();
-  labour!: Labour;
+  staff!: Staff;
   recreation!: Recreation;
 
   //Controls
@@ -61,6 +58,7 @@ export default class MainScene extends Phaser.Scene {
   currentDay = 1;
   isEvening = false;
   // framesPerDay = 2500;
+
   framesPerDay = 18000;
   timeOfDay = 0;
 

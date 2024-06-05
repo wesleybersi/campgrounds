@@ -26,6 +26,8 @@ export function goto(this: Agent, col: number, row: number): boolean {
 
   this.target = { col, row };
 
+  this.pathHighlight();
+
   if (this.path.length > 0) {
     return true;
   } else {

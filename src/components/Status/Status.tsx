@@ -17,7 +17,7 @@ const Status = () => {
           onMouseEnter={() => setShowOrders(true)}
           onMouseLeave={() => setShowOrders(false)}
         >
-          {scene.labour.queuedTasks.length} orders
+          {scene.staff.queuedTasks.length} orders
           {/* {showOrders && <OrderQueue />} */}
         </div>
         <div></div>

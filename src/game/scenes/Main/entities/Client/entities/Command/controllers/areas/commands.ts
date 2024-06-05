@@ -1,4 +1,5 @@
 import MainScene from "../../../../../../MainScene";
+import { Area } from "../../../../../Area/Area";
 import { Reception } from "../../../../../Recreation/entities/Reception/Reception";
 import { Site } from "../../../../../Recreation/entities/Site/Site";
 import { Controller } from "../types";
@@ -13,6 +14,21 @@ const isValid = (scene: MainScene, cells: { col: number; row: number }[]) => {
 };
 
 export const areaCommands: Controller = {
+  ["storage"]: {
+    selectionType: "grid",
+    onPointerUp(scene, pointer, cells) {
+      if (!scene.client.selection) return;
+      if (isValid(scene, cells)) {
+        new Area(
+          scene,
+          scene.client.selection.rect.x,
+          scene.client.selection.rect.y,
+          scene.client.selection.rect.width,
+          scene.client.selection.rect.height
+        );
+      }
+    },
+  },
   ["reception"]: {
     selectionType: "grid",
     onPointerUp(scene, pointer, cells) {

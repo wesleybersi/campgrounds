@@ -1,4 +1,4 @@
-import { Builder } from "./scenes/Main/entities/Labour/force/Builder/Builder";
+import { Builder } from "./scenes/Main/entities/Staff/force/Builder/Builder";
 
 export type Cardinal = "top" | "bottom" | "left" | "right";
 export type Direction = "up" | "down" | "left" | "right";

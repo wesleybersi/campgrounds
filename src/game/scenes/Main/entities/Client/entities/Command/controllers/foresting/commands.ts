@@ -1,15 +1,15 @@
-import { getRandomInt } from "../../../../../../../../utils/helper-functions";
 import MainScene from "../../../../../../MainScene";
 import { Flower } from "../../../../../Grid/entities/Flower/Flower";
 import { Hedge } from "../../../../../Grid/entities/Hedge/Hedge";
 import { Rock } from "../../../../../Grid/entities/Rock/Rock";
-import { Tree, treeSets } from "../../../../../Grid/entities/Tree/Tree";
-import { Task } from "../../../../../Labour/entities/Task/Task";
+import { Tree } from "../../../../../Grid/entities/Tree/Tree";
+import { Task } from "../../../../../Staff/entities/Task/Task";
 import { Controller } from "../types";
 
 const isValid = (scene: MainScene, col: number, row: number) => {
   if (scene.grid.objectMatrix[row][col]) return false;
-  if (scene.labour.taskGrid[row][col]) return false;
+  if (scene.staff.taskMatrix[row][col]) return false;
+  if (scene.grid.collisionMap[row][col] === 1) return false;
   return true;
 };
 
@@ -18,7 +18,7 @@ export const forestingCommands: Controller = {
     selectionType: "free",
     onPointerUp: (scene, _, cells) => {
       for (const { col, row } of cells) {
-        if (scene.labour.taskGrid[row][col]) continue;
+        if (scene.staff.taskMatrix[row][col]) continue;
         const target = scene.grid.objectMatrix[row][col];
         if (
           target &&
@@ -26,19 +26,15 @@ export const forestingCommands: Controller = {
             target instanceof Rock ||
             target instanceof Flower)
         ) {
-          new Task(
-            scene,
-            "forester",
-            col,
-            row,
-            target.harvestMultiplier,
-            undefined,
-            () => {
+          new Task(scene, col, row, {
+            labor: ["forester"],
+            multiplier: target.harvestMultiplier,
+            color: 0xff0000,
+            onComplete: () => {
               target.harvest();
               target.remove();
             },
-            0xff8888
-          );
+          });
         }
       }
     },
@@ -46,9 +42,14 @@ export const forestingCommands: Controller = {
   ["plant tree"]: {
     selectionType: "none",
     onPointerDown: (scene, pointer, col, row) => {
+      const index = scene.client.command.index;
       if (!isValid(scene, col, row)) return;
-      new Task(scene, "forester", col, row, 0.1, undefined, () => {
-        new Tree(scene.grid, null, col, row, getRandomInt(treeSets.length));
+      new Task(scene, col, row, {
+        labor: ["forester"],
+        multiplier: 0.1,
+        onComplete: () => {
+          new Tree(scene.grid, null, col, row, 0, index);
+        },
       });
     },
   },
@@ -56,8 +57,10 @@ export const forestingCommands: Controller = {
     selectionType: "none",
     onPointerDown: (scene, pointer, col, row) => {
       if (!isValid(scene, col, row)) return;
-      new Task(scene, "forester", col, row, 0.1, undefined, () => {
-        new Flower(scene.grid, col, row);
+      new Task(scene, col, row, {
+        labor: ["forester"],
+        multiplier: 0.5,
+        onComplete: () => new Flower(scene.grid, col, row),
       });
     },
   },
@@ -66,8 +69,10 @@ export const forestingCommands: Controller = {
     onPointerUp(scene, pointer, cells) {
       for (const { col, row } of cells) {
         if (!isValid(scene, col, row)) return;
-        new Task(scene, "forester", col, row, 0.1, undefined, () => {
-          new Hedge(scene.grid, col, row);
+        new Task(scene, col, row, {
+          labor: ["forester"],
+          multiplier: 0.1,
+          onComplete: () => new Hedge(scene.grid, col, row),
         });
       }
     },

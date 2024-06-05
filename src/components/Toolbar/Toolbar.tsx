@@ -9,6 +9,7 @@ import { MdTour as IconTours } from "react-icons/md";
 import Foresting from "./menu/Foresting/Foresting";
 import Areas from "./menu/Areas/Areas";
 import Construction from "./menu/Construction/Construction";
+import TourGuide from "./menu/TourGuide/TourGuide";
 
 const Toolbar = () => {
   const [bottomOffset, setBottomOffset] = useState<number>(0);
@@ -32,7 +33,11 @@ const Toolbar = () => {
       icon: <IconConstruction size={iconSize} />,
       component: <Construction bottom={bottomOffset} />,
     },
-    { name: "Tours", icon: <IconTours size={iconSize} /> },
+    {
+      name: "Tours",
+      icon: <IconTours size={iconSize} />,
+      component: <TourGuide bottom={bottomOffset} />,
+    },
   ];
 
   useEffect(() => {

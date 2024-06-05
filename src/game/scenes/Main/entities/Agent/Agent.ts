@@ -24,6 +24,7 @@ export class Agent extends Phaser.GameObjects.Sprite {
   movementDuration = 8;
   target: Position | null = null;
   path: Position[] = [];
+  pathHighlights: Phaser.GameObjects.Line[] = [];
   name = "";
   characterIndex = getRandomInt(16);
   description: string[] = ["General use agent without a cause"];
@@ -60,19 +61,38 @@ export class Agent extends Phaser.GameObjects.Sprite {
       this.wander();
     }
   }
+  pathHighlight() {
+    for (const highlight of this.pathHighlights) {
+      highlight.destroy();
+    }
+    this.path.forEach(({ col, row }, index) => {
+      if (index < this.path.length - 1) {
+        this.pathHighlights.push(
+          this.scene.add
+            .line(
+              0,
+              0,
+              absolutePos(col),
+              absolutePos(row),
+              absolutePos(this.path[index + 1].col),
+              absolutePos(this.path[index + 1].row)
+            )
+            .setStrokeStyle(2, 0xffffff, 0.25)
+            .setDepth(0)
+            .setOrigin(0, 0)
+        );
+      }
+    });
+  }
   goHome() {
     this.goto(0, 0);
   }
-  select() {
-    this.scene.client.selected = this;
-  }
-  deselect() {
-    this.scene.client.selected = null;
-  }
+
   follow() {
     this.scene.cameras.main.startFollow(this);
   }
   remove() {
+    this.scene.allAgents.delete(this);
     this.destroy();
   }
 }

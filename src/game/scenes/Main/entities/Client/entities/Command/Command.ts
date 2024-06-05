@@ -8,6 +8,7 @@ export class Command {
   client: Client;
   category: "area" | "foresting" | "construction" | "" = "";
   order = "";
+  index = -1;
   selectionType: "none" | "free" | "grid" | "grid-empty" | "line" = "free";
 
   onPointerDown?: (
@@ -28,14 +29,21 @@ export class Command {
   clear() {
     this.category = "";
     this.order = "";
+    this.index = -1;
+    this.selectionType = "free";
     delete this.onPointerDown;
     delete this.onPointerUp;
   }
-  instruct(category: "area" | "foresting" | "construction", order: string) {
+  instruct(
+    category: "area" | "foresting" | "construction",
+    order: string,
+    index?: number
+  ) {
     delete this.onPointerDown;
     delete this.onPointerUp;
     this.category = category;
     this.order = order;
+    this.index = index ?? -1;
 
     let commands = null;
 

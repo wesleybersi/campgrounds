@@ -26,7 +26,7 @@ export class Grid {
   areaMatrix: (Area | null)[][] = [];
 
   tileMap: BasicTilemap;
-  tracker: Set<Agent>[][] = [];
+
   pathFinder: AStarFinder;
 
   constructor(scene: MainScene, rows: number, cols: number) {
@@ -36,10 +36,6 @@ export class Grid {
     this.collisionMap = Array.from({ length: this.rows }, () =>
       Array.from({ length: this.cols }, () => 0)
     );
-    this.tracker = Array.from({ length: this.rows }, () =>
-      Array.from({ length: this.cols }, () => new Set())
-    );
-
     this.floorMatrix = Array.from({ length: this.rows }, () =>
       Array.from({ length: this.cols }, () => null)
     );
@@ -113,24 +109,12 @@ export class Grid {
     });
   }
   update(delta: number) {
-    if (this.scene.frameCounter % 30 === 0) {
-      this.tracker = Array.from({ length: this.rows }, () =>
-        Array.from({ length: this.cols }, () => new Set())
-      );
-
-      const agents = this.scene.allAgents;
-      for (const agent of agents) {
-        this.track(agent);
-      }
-    }
-
     this.pathFinder = new AStarFinder({
       grid: {
         matrix: this.collisionMap,
       },
       diagonalAllowed: true,
       heuristic: "Manhattan",
-      // allowPathAsCloseAsPossible: false,
       allowPathAsCloseAsPossible: true,
     });
   }
@@ -141,17 +125,6 @@ export class Grid {
     if (!this.objectMatrix[row][col] && !this.collisionMap[row][col])
       return { row, col };
     else return this.getRandomEmptyCell();
-  }
-  track(agent: Agent) {
-    const cells = this.getOverlappingCells(agent.x, agent.y, CELL_SIZE);
-    for (const cell of cells) {
-      if (this.isWithinBounds(cell.col, cell.row)) {
-        this.tracker[cell.row][cell.col].add(agent);
-      }
-    }
-  }
-  getAgentsInCell(row: number, col: number): Set<Agent> {
-    return this.tracker[row][col];
   }
 
   getOverlappingCells(

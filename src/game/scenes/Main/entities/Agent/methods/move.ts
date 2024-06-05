@@ -3,6 +3,7 @@ import {
   absolutePos,
 } from "../../../../../utils/helper-functions";
 import { CELL_SIZE } from "../../../constants";
+import { Guest } from "../../Recreation/entities/Guest/Guest";
 import { Agent } from "../Agent";
 
 export function move(this: Agent, delta: number) {
@@ -20,6 +21,7 @@ export function move(this: Agent, delta: number) {
     yOffset = getRandomInt(-CELL_SIZE / 2, CELL_SIZE / 2);
   }
 
+  let didUpdateHighlight = false;
   const tween = this.scene.tweens.add({
     targets: this,
     duration: this.movementDuration / delta,
@@ -27,6 +29,8 @@ export function move(this: Agent, delta: number) {
     y: absolutePos(row) + yOffset,
     ease: this.path.length === 1 ? "Sine.Out" : "Linear",
     onStart: () => {
+      this.scene.events.off(`${this.col},${this.row}`); // No longer listen to events on this cell
+
       this.anims.resume();
       // Determine primary direction (vertical or horizontal)
       if (Math.abs(directionRow) >= Math.abs(directionCol)) {
@@ -58,9 +62,18 @@ export function move(this: Agent, delta: number) {
       }
     },
     onUpdate: () => {
-      tween.duration = this.movementDuration / this.scene.delta;
+      if (tween.progress >= 0.5 && !didUpdateHighlight) {
+        this.pathHighlight();
+        didUpdateHighlight = true;
+      }
     },
     onComplete: () => {
+      this.scene.events.on(
+        `${col},${row}`,
+        (callback: (agent: Agent) => void) => {
+          callback(this);
+        }
+      ); //Listen to events on this cell
       this.anims.restart();
       this.anims.pause();
 

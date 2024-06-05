@@ -4,26 +4,28 @@ import { CgMathPlus as IconHire } from "react-icons/cg";
 
 const Staff = () => {
   const { scene } = useStore();
+  const builders = scene.staff.getWorkerType("builder");
   return (
     <section className={styles.staff}>
       <p>
-        Available:{" "}
-        {scene.labour.builders.filter((builder) => !builder.task).length} /{" "}
-        {scene.labour.builders.length}
+        Available: {builders.filter((builder) => !builder.taskQueue).length} /{" "}
+        {builders.length}
       </p>
       <div className={styles.builders}>
         <button
           className={styles.profile}
           style={{ background: "var(--btn-color)" }}
-          onClick={() => scene.labour.hire("builder")}
+          onClick={() => scene.staff.hire("builder")}
         >
           <IconHire size="24px" />
         </button>
-        {scene.labour.builders.map((builder) => (
+        {builders.map((builder) => (
           <button
             className={styles.profile}
             onClick={() => builder.follow()}
-            style={{ backgroundColor: builder.task ? "#ff0000cc" : "" }}
+            style={{
+              backgroundColor: builder.taskQueue.length > 0 ? "#ff0000cc" : "",
+            }}
           ></button>
         ))}
       </div>

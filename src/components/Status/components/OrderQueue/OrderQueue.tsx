@@ -6,7 +6,7 @@ const OrderQueue = () => {
   const { scene } = useStore();
   return (
     <div className={styles.wrapper}>
-      {scene.labour.queuedTasks.map((task) => (
+      {scene.staff.queuedTasks.map((task) => (
         <div
           className={styles.orders}
           onMouseEnter={() =>
@@ -16,7 +16,7 @@ const OrderQueue = () => {
             )
           }
         >
-          {task.laborer}
+          {task.laborType}
         </div>
       ))}
     </div>
