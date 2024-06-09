@@ -1,31 +1,55 @@
+import { Position } from "../../../../../../../../types";
 import MainScene from "../../../../../../MainScene";
 import { Area } from "../../../../../Area/Area";
-import { Reception } from "../../../../../Recreation/entities/Reception/Reception";
-import { Site } from "../../../../../Recreation/entities/Site/Site";
 import { Controller } from "../types";
 
-const isValid = (scene: MainScene, cells: { col: number; row: number }[]) => {
-  for (const { col, row } of cells) {
-    if (scene.grid.areaMatrix[row][col]) {
-      return false;
+export function extendAreaInPlace(
+  scene: MainScene,
+  cells: Position[],
+  type: "storage" | "reception"
+): boolean {
+  for (const cell of cells) {
+    const areaInPlace = scene.grid.areaMap.get(`${cell.col},${cell.row}`);
+    if (areaInPlace && areaInPlace.type === type) {
+      areaInPlace.extend(cells);
+      return true;
+    }
+    const neighbors = scene.grid.getNeighbors(cell.col, cell.row);
+    for (const neighbor of neighbors) {
+      const areaInPlace = scene.grid.areaMap.get(
+        `${neighbor.col},${neighbor.row}`
+      );
+      if (areaInPlace && areaInPlace.type === type) {
+        areaInPlace.extend(cells);
+        return true;
+      }
     }
   }
-  return true;
-};
+  return false;
+}
 
 export const areaCommands: Controller = {
+  ["clear"]: {
+    selectionType: "grid",
+    onPointerUp(scene, pointer, cells) {
+      if (!scene.client.selection) return;
+
+      const areasInPlace = new Set<Area>();
+      for (const cell of cells) {
+        const areaInPlace = scene.grid.areaMap.get(`${cell.col},${cell.row}`);
+        if (areaInPlace) areasInPlace.add(areaInPlace);
+      }
+      for (const area of areasInPlace) {
+        area.clear(cells);
+      }
+    },
+  },
   ["storage"]: {
     selectionType: "grid",
     onPointerUp(scene, pointer, cells) {
       if (!scene.client.selection) return;
-      if (isValid(scene, cells)) {
-        new Area(
-          scene,
-          scene.client.selection.rect.x,
-          scene.client.selection.rect.y,
-          scene.client.selection.rect.width,
-          scene.client.selection.rect.height
-        );
+      if (!extendAreaInPlace(scene, cells, "storage")) {
+        new Area(scene, "storage", cells);
       }
     },
   },
@@ -33,30 +57,18 @@ export const areaCommands: Controller = {
     selectionType: "grid",
     onPointerUp(scene, pointer, cells) {
       if (!scene.client.selection) return;
-      if (isValid(scene, cells)) {
-        new Reception(
-          scene,
-          scene.client.selection.rect.x,
-          scene.client.selection.rect.y,
-          scene.client.selection.rect.width,
-          scene.client.selection.rect.height
-        );
+      if (!extendAreaInPlace(scene, cells, "reception")) {
+        new Area(scene, "reception", cells);
       }
     },
   },
-  ["campsite"]: {
-    selectionType: "grid",
-    onPointerUp(scene, pointer, cells) {
-      if (!scene.client.selection) return;
-      if (isValid(scene, cells)) {
-        new Site(
-          scene,
-          scene.client.selection.rect.x,
-          scene.client.selection.rect.y,
-          scene.client.selection.rect.width,
-          scene.client.selection.rect.height
-        );
-      }
-    },
-  },
+  // ["campsite"]: {
+  //   selectionType: "grid",
+  //   onPointerUp(scene, pointer, cells) {
+  //     if (!scene.client.selection) return;
+  //     if (isValid(scene, cells)) {
+  //       new Site(scene, cells);
+  //     }
+  //   },
+  // },
 };

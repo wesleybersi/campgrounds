@@ -1,10 +1,9 @@
 import styles from "./styles.module.scss";
 import useStore from "../../../../../../store/store";
 import { GiScythe as IconHarvest } from "react-icons/gi";
-import { FaTree as IconPlantTree } from "react-icons/fa";
-import { LuFlower2 as IconPlantFlower } from "react-icons/lu";
-import { FaGripLines as IconHedge } from "react-icons/fa6";
-import { useEffect, useState } from "react";
+import { GiGrass as IconMow } from "react-icons/gi";
+
+import { useState } from "react";
 
 const Orders = () => {
   const { scene } = useStore();
@@ -18,17 +17,13 @@ const Orders = () => {
       order: "harvest",
       icon: <IconHarvest size={iconSize} />,
     },
-
-    // {
-    //   order: "plant flower",
-    //   icon: <IconPlantFlower size={iconSize} />,
-    // },
-    // { order: "place hedge", icon: <IconHedge size={iconSize} /> },
+    {
+      name: "Mow Grass",
+      description: [""],
+      order: "mow grass",
+      icon: <IconMow size={iconSize} />,
+    },
   ];
-
-  useEffect(() => {
-    return () => scene.client.command.clear();
-  }, []);
 
   return (
     <section className={styles.orders}>

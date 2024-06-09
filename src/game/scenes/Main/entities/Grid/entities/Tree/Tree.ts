@@ -1,13 +1,8 @@
-import {
-  absolutePos,
-  getRandomInt,
-} from "../../../../../../utils/helper-functions";
+import { getRandomInt } from "../../../../../../utils/helper-functions";
 import MainScene from "../../../../MainScene";
 import { CELL_SIZE } from "../../../../constants";
 import { Resource } from "../../../Staff/entities/Resource/Resource";
-import { Task } from "../../../Staff/entities/Task/Task";
 
-import { Notification } from "../../../Notification/Notification";
 import { Grid } from "../../Grid";
 
 import { Forest } from "../Forest/Forest";
@@ -27,7 +22,7 @@ export class Tree extends Phaser.GameObjects.Sprite {
   row: number;
   col: number;
   growth = 0.1;
-  maxResources = 25;
+  maxResources = 6;
   harvestMultiplier = 0.1; // TODO Depends on size
   constructor(
     grid: Grid,
@@ -101,7 +96,7 @@ export class Tree extends Phaser.GameObjects.Sprite {
     new Resource(
       this.scene,
       "wood",
-      getRandomInt(10, this.maxResources),
+      getRandomInt(0, this.maxResources),
       this.col,
       this.row
     );

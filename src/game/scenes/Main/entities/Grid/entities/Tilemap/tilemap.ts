@@ -83,18 +83,20 @@ export default class BasicTilemap {
     this.grid.collisionMap[row][col] = 1;
     this.grid.floorMatrix[row][col] = "grass-elevated";
   }
-  placeGrassTile(col: number, row: number) {
+  placeGrassTile(col: number, row: number, tileIndex?: number) {
     if (!this.grid.isWithinBounds(col, row)) return;
 
-    let index = 28; // empty grass tile
+    let index = tileIndex ?? 28; // empty grass tile
 
-    if (oneIn(50)) {
-      index = 163;
-    }
+    if (tileIndex === undefined) {
+      if (oneIn(50)) {
+        index = 163;
+      }
 
-    if (oneIn(200)) {
-      const deco = [162, 163, 165];
-      index = deco[getRandomInt(deco.length)];
+      if (oneIn(200)) {
+        const deco = [162, 163, 165];
+        index = deco[getRandomInt(deco.length)];
+      }
     }
     const tile = this.base.putTileAt(index, col, row);
 

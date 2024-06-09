@@ -1,17 +1,21 @@
-import { Resources } from "./../../../../../HUD/entities/Resources/Resources";
+import { ResourceType } from "./../Resource/Resource";
+
 import MainScene from "../../../../MainScene";
 
 import { ProgressBar } from "../../../ProgressBar/ProgressBar";
 import { absolutePos } from "../../../../../../utils/helper-functions";
 import { CELL_SIZE, MAX_CARRY } from "../../../../constants";
 import { Worker, WorkerType } from "../Worker/Worker";
-import { Resource } from "../Resource/Resource";
+import { resourcesMatchRequirement } from "./methods/resources-match";
+import { dropResources } from "./methods/drop-resources";
+import { getResources } from "./methods/get-resources";
 
 interface TaskConfig {
   labor: WorkerType[];
   multiplier: number;
-  resourceRequired?: { type: "wood" | "stone"; amount: number };
+  requiredResources?: { [key in ResourceType]?: number };
   color?: number;
+  hidePlaceholder?: boolean;
   onStart?: () => void;
   onProgress?: (progress: number) => void;
   onComplete?: () => void;
@@ -35,11 +39,17 @@ export class Task {
   onStart?: () => void;
   onProgress?: (progress: number) => void;
   onComplete?: () => void;
-  resourceRequired: {
-    type: "wood" | "stone";
-    amount: number;
-  } | null = null;
-  resourceCount = 0;
+  requiredResources?: {
+    [key in ResourceType]?: number;
+  };
+  currentResources?: {
+    [key in ResourceType]?: number;
+  };
+
+  //Resource methods
+  resourcesMatchRequirement = resourcesMatchRequirement;
+  getResources = getResources;
+  dropResources = dropResources;
   constructor(scene: MainScene, col: number, row: number, config: TaskConfig) {
     this.scene = scene;
     this.col = col;
@@ -48,11 +58,17 @@ export class Task {
     this.initialRow = row;
     this.laborType = config.labor;
     this.multiplier = config.multiplier;
-    this.resourceRequired = config.resourceRequired ?? null;
+    this.requiredResources = config.requiredResources;
+    if (this.requiredResources)
+      this.currentResources = { ...this.requiredResources };
+    for (const resource in this.currentResources) {
+      this.currentResources[resource as ResourceType] = 0;
+    }
     this.bar = new ProgressBar(this, col, row);
     this.placeholder = this.scene.add
       .rectangle(absolutePos(col), absolutePos(row), CELL_SIZE, CELL_SIZE)
-      .setStrokeStyle(1, config.color ?? 0xffffff);
+      .setStrokeStyle(1, config.color ?? 0xffffff)
+      .setAlpha(config.hidePlaceholder ? 0 : 1);
     this.color = config.color ?? 0xffffff;
     this.onStart = config.onStart;
     this.onProgress = config.onProgress;
@@ -66,86 +82,18 @@ export class Task {
     this.worker = worker;
     this.worker.taskQueue.unshift(this);
   }
-
-  haul() {
-    if (!this.worker) return;
-    const relevantResources = this.scene.staff.resourceMatrix
-      .flat()
-      .filter(
-        (resource) =>
-          resource instanceof Resource &&
-          resource.type === this.resourceRequired?.type &&
-          !resource.carriedBy &&
-          !this.scene.staff.taskMatrix[resource.row][resource.col]
-      ) as Resource[];
-
-    if (relevantResources.length > 0) {
-      const nearestResource = relevantResources.reduce((prev, curr) =>
-        Math.abs(curr.row - this.row) + Math.abs(curr.col - this.col) <
-        Math.abs(prev.row - this.row) + Math.abs(prev.col - this.col)
-          ? curr
-          : prev
-      );
-      const resource = nearestResource;
-
-      const haulTask = new Task(this.scene, resource.col, resource.row, {
-        labor: [this.worker.type],
-        multiplier: Infinity,
-        color: 0x0044ff,
-
-        onComplete: () => {
-          if (!this.worker) {
-            console.log("no worker - abort");
-            return;
-          }
-
-          if (!this.resourceRequired) {
-            console.log("No resource required, abort");
-            return;
-          }
-          if (!this.worker.carriedResource) {
-            this.worker.carriedResource = resource;
-            resource.carriedBy = this.worker;
-          } else {
-            while (
-              this.worker.carriedResource.amount < MAX_CARRY &&
-              resource.amount > 0
-            ) {
-              this.worker.carriedResource.amount++;
-              resource.amount--;
-            }
-            if (resource.amount <= 0) resource.remove();
-          }
-        },
-      });
-      haulTask.assign(this.worker);
-    }
-  }
-
   advance(delta: number) {
-    if (this.resourceRequired) {
-      if (this.resourceCount < this.resourceRequired.amount) {
-        if (this.worker && this.worker.carriedResource) {
-          if (this.worker.carriedResource.type === this.resourceRequired.type) {
-            while (
-              this.resourceCount < this.resourceRequired.amount &&
-              this.worker.carriedResource.amount > 0
-            ) {
-              this.resourceCount++;
-              this.worker.carriedResource.amount--;
-            }
+    if (!this.worker) return;
+    const worker = this.worker;
+    const requiredResources = this.requiredResources;
 
-            if (this.worker.carriedResource.amount <= 0) {
-              this.worker.carriedResource.remove();
-            }
-          }
-        } else if (this.worker && !this.worker.carriedResource) {
-          this.haul();
-        }
-        return;
-      } else if (this.resourceCount === this.resourceRequired.amount) {
-        this.placeholder.setFillStyle(this.color);
+    if (requiredResources) {
+      if (worker.carriedResource) {
+        this.dropResources(worker.carriedResource);
+      } else if (!this.worker?.carriedResource) {
+        this.getResources();
       }
+      return;
     }
 
     this.progress += delta * this.multiplier;

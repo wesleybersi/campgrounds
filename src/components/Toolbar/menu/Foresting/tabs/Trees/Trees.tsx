@@ -60,10 +60,6 @@ const Trees = () => {
     },
   ];
 
-  useEffect(() => {
-    return () => scene.client.command.clear();
-  }, []);
-
   return (
     <section className={styles.orders}>
       <p>Select a tree and click anywhere to let a forester plant it.</p>

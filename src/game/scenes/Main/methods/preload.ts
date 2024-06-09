@@ -8,12 +8,17 @@ import { CELL_SIZE } from "../constants";
 import agent from "../../../assets/images/tiles/agent.png";
 import woodenPath from "../../../assets/summer/objects/wooden_path.png";
 
+import agentShadow from "../../../assets/characters/agent-shadow.png";
+
 import chars from "../../../assets/characters/chars.png";
 import helmet from "../../../assets/characters/helmet.png";
+
+import whiteTile from "../../../assets/white-tile.png";
 
 import tentA from "../../../assets/images/tents/tent-a-alt.png";
 
 import resourceLogs from "../../../assets/resources/logs.png";
+import resourceStone from "../../../assets/resources/stone.png";
 
 import hedge from "../../../assets/summer/walls/hedge.png";
 import treeA1 from "../../../assets/summer/objects/trees/a/tree-a1.png";
@@ -87,6 +92,7 @@ export default function preload(this: MainScene) {
     frameWidth: 32,
     frameHeight: 48,
   });
+  this.load.image("agent-shadow", agentShadow);
 
   this.load.spritesheet("tent", tentA, {
     frameWidth: 32,
@@ -105,6 +111,8 @@ export default function preload(this: MainScene) {
     frameWidth: 16,
     frameHeight: 16,
   });
+
+  this.load.image("white-tile", whiteTile);
 
   this.load.image("helmet", helmet);
   this.load.image("rock-1", rock1);
@@ -169,7 +177,15 @@ export default function preload(this: MainScene) {
     frameHeight: 16,
   });
 
-  this.load.image("resource-logs", resourceLogs);
+  this.load.spritesheet("resource-logs", resourceLogs, {
+    frameWidth: 16,
+    frameHeight: 16,
+  });
+
+  this.load.spritesheet("resource-stone", resourceStone, {
+    frameWidth: 16,
+    frameHeight: 16,
+  });
 
   this.load.image("flower-1", flower1);
   this.load.image("flower-2", flower2);

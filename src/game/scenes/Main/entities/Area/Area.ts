@@ -1,72 +1,141 @@
+import { Position } from "../../../../types";
+import { absolutePos } from "../../../../utils/helper-functions";
 import MainScene from "../../MainScene";
-import { CELL_SIZE } from "../../constants";
+import { Storage } from "../Staff/entities/Storage/Storage";
+import { Reception } from "../Recreation/entities/Reception/Reception";
 
-export class Area extends Phaser.GameObjects.Rectangle {
+interface AreaCell {
+  col: number;
+  row: number;
+  graphic?: Phaser.GameObjects.Image;
+}
+export class Area {
+  type: "storage" | "reception";
   scene: MainScene;
-  rect: { [key: string]: { col: number; row: number } };
-  grid: { col: number; row: number }[][] = [];
+  cells: AreaCell[] = [];
   isSelected = false;
+  module: Storage | Reception;
   constructor(
     scene: MainScene,
-    x: number,
-    y: number,
-    width: number,
-    height: number
+    type: "storage" | "reception",
+    cells: { col: number; row: number }[]
   ) {
-    super(
-      scene,
-      Math.floor(x / CELL_SIZE) * CELL_SIZE,
-      Math.floor(y / CELL_SIZE) * CELL_SIZE,
-      Math.ceil(width / CELL_SIZE) * CELL_SIZE,
-      Math.ceil(height / CELL_SIZE) * CELL_SIZE
-    );
     this.scene = scene;
-    this.rect = {
-      topLeft: {
-        col: Math.floor(x / CELL_SIZE),
-        row: Math.floor(y / CELL_SIZE),
-      },
-      bottomRight: {
-        col: Math.floor(x / CELL_SIZE) + Math.ceil(this.width / CELL_SIZE),
-        row: Math.floor(y / CELL_SIZE) + Math.ceil(this.height / CELL_SIZE),
-      },
-    };
-    this.setFillStyle(0x000000, scene.client.overlay === "area" ? 0.1 : 0);
-    this.setOrigin(0);
-    this.createGrid();
-
-    for (const cell of this.grid.flat()) {
-      this.scene.grid.areaMatrix[cell.row][cell.col] = this;
+    this.type = type;
+    switch (type) {
+      case "storage":
+        this.module = new Storage(this);
+        break;
+      case "reception":
+        this.module = new Reception(this);
+        break;
     }
-    this.scene.add.existing(this);
+    this.extend(cells);
   }
-  createGrid() {
-    const grid: { col: number; row: number; object: null }[][] = [];
+  extend(cells: { col: number; row: number }[]) {
+    for (const { col, row } of cells) {
+      const cellInPlace = this.scene.grid.areaMap.has(`${col},${row}`);
+      if (cellInPlace) continue;
+      if (this.scene.client.overlay.areas) {
+        const graphic = this.scene.add
+          .image(absolutePos(col), absolutePos(row), "white-tile")
+          .setAlpha((col + row) % 2 === 0 ? 0.1 : 0.2);
 
-    const numRows = Math.ceil(this.height / CELL_SIZE);
-    const numCols = Math.ceil(this.width / CELL_SIZE);
-
-    for (let row = 0; row < numRows; row++) {
-      const newRow = [];
-      for (let col = 0; col < numCols; col++) {
-        newRow.push({
-          col: col + this.rect.topLeft.col,
-          row: row + this.rect.topLeft.row,
-          object: null,
-        });
+        this.cells.push({ col, row, graphic });
+        this.scene.grid.areaMap.set(`${col},${row}`, this);
       }
-      grid.push(newRow);
+    }
+    this.module?.update();
+  }
+  show() {
+    for (const cell of this.cells) {
+      cell.graphic = this.scene.add
+        .image(absolutePos(cell.col), absolutePos(cell.row), "white-tile")
+        .setAlpha((cell.col + cell.row) % 2 === 0 ? 0.1 : 0.2);
+    }
+    this.module?.update();
+  }
+  hide() {
+    for (const { graphic } of this.cells) {
+      graphic?.destroy();
+    }
+    this.module?.update();
+  }
+  clear(cells: { col: number; row: number }[]) {
+    for (const { col, row } of cells) {
+      const cellInPlace = this.cells.find(
+        (cell) => cell.col === col && cell.row === row
+      );
+      if (!cellInPlace) continue;
+      cellInPlace.graphic?.destroy();
+      this.scene.grid.areaMap.delete(`${col},${row}`);
     }
 
-    this.grid = grid;
+    const updatedCells = this.cells.filter((cell) =>
+      this.scene.grid.areaMap.has(`${cell.col},${cell.row}`)
+    );
+    this.cells = updatedCells;
+
+    this.splitIfDivided();
   }
-  select() {
-    this.scene.grid.areaMatrix.flat().forEach((area) => area?.deselect());
-    this.isSelected = true;
-    this.setStrokeStyle(CELL_SIZE / 10, 0xffffff);
+  splitIfDivided(): void {
+    const regions: AreaCell[][] = [];
+    const visited: Set<string> = new Set();
+
+    const floodFill = (cell: Position, region: Position[]): void => {
+      const key = `${cell.col},${cell.row}`;
+      if (visited.has(key)) return;
+
+      visited.add(key);
+      region.push(cell);
+
+      const neighbors = this.getNeighbors(cell.col, cell.row); // Implement this function to get neighboring cells
+      neighbors.forEach((neighbor) => floodFill(neighbor, region));
+    };
+
+    this.cells.forEach((cell) => {
+      console.count("cell");
+      const key = `${cell.col},${cell.row}`;
+      if (!visited.has(key)) {
+        const region: AreaCell[] = [];
+        floodFill(cell, region);
+        regions.push(region);
+      }
+    });
+
+    if (regions.length > 1) {
+      console.log(
+        `The area is divided into ${regions.length} connected regions.`
+      );
+
+      //Destroy this instance and create new ones based on the split regions
+      this.clearAll();
+
+      for (const region of regions) {
+        const cells: Position[] = region.map((cell) => ({
+          col: cell.col,
+          row: cell.row,
+        }));
+        new Area(this.scene, this.type, cells);
+      }
+    }
   }
-  deselect() {
-    this.isSelected = false;
-    this.setStrokeStyle(0);
+  getNeighbors(col: number, row: number): { col: number; row: number }[] {
+    return [
+      { row: row + 1, col: col },
+      { row: row, col: col - 1 },
+      { row: row, col: col + 1 },
+      { row: row - 1, col: col },
+    ].filter((cell) =>
+      this.cells.find((c) => c.row === cell.row && c.col === cell.col)
+    );
+  }
+
+  clearAll() {
+    for (const { col, row, graphic } of this.cells) {
+      graphic?.destroy();
+      this.scene.grid.areaMap.delete(`${col},${row}`);
+    }
+    this.cells = [];
   }
 }

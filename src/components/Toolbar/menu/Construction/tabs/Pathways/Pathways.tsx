@@ -19,10 +19,6 @@ const Pathways = () => {
     },
   ];
 
-  useEffect(() => {
-    return () => scene.client.command.clear();
-  }, []);
-
   return (
     <section className={styles.orders}>
       <p>

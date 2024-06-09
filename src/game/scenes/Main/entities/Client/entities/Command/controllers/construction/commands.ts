@@ -61,7 +61,7 @@ export const constructionCommands: Controller = {
         if (!isValid(scene, col, row)) continue;
         new Task(scene, col, row, {
           labor: ["builder"],
-          resourceRequired: { type: "wood", amount: 10 },
+          requiredResources: { wood: 1 },
           multiplier: 0.5,
           onComplete: () => {
             new FloorPlanks(scene.grid, col, row);

@@ -24,7 +24,7 @@ export class Client {
   };
 
   hideTrees = false;
-  overlay: "area" | null = "area";
+  overlay: { areas: boolean } = { areas: true };
   command: Command;
 
   // selected: Agent | Site | null = null;

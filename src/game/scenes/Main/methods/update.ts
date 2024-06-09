@@ -24,6 +24,8 @@ export default function update(this: MainScene, _: number, delta: number) {
   // this.staff.update(delta);
   this.recreation.update(delta);
 
+  console.log(this.staff.resourcesNotInStorage.size);
+
   const camera = this.cameras.main;
   this.frameCounter++;
   this.timeOfDay += this.gameSpeed;

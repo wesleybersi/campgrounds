@@ -39,6 +39,28 @@ export const forestingCommands: Controller = {
       }
     },
   },
+
+  ["mow grass"]: {
+    selectionType: "grid",
+    onPointerUp: (scene, _, cells) => {
+      for (const { col, row } of cells) {
+        if (scene.staff.taskMatrix[row][col]) continue;
+        const tileInPlace = scene.grid.floorMatrix[row][col];
+        if (tileInPlace !== "grass") continue;
+
+        //TODO Forester needs grass-mower tool.
+
+        new Task(scene, col, row, {
+          labor: ["forester"],
+          multiplier: 0.75,
+          color: 0xff0000,
+          onComplete: () => {
+            scene.grid.tileMap.placeGrassTile(col, row, 28);
+          },
+        });
+      }
+    },
+  },
   ["plant tree"]: {
     selectionType: "none",
     onPointerDown: (scene, pointer, col, row) => {

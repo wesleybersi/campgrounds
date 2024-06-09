@@ -23,7 +23,8 @@ export class Grid {
 
   floorMatrix: ("grass" | "dirt" | "water" | "grass-elevated" | null)[][] = [];
   objectMatrix: (StaticObject | null)[][] = [];
-  areaMatrix: (Area | null)[][] = [];
+
+  areaMap = new Map<string, Area>();
 
   tileMap: BasicTilemap;
 
@@ -40,9 +41,6 @@ export class Grid {
       Array.from({ length: this.cols }, () => null)
     );
     this.objectMatrix = Array.from({ length: this.rows }, () =>
-      Array.from({ length: this.cols }, () => null)
-    );
-    this.areaMatrix = Array.from({ length: this.rows }, () =>
       Array.from({ length: this.cols }, () => null)
     );
 
@@ -118,6 +116,43 @@ export class Grid {
       allowPathAsCloseAsPossible: true,
     });
   }
+  getAreas(type: "*" | "storage" | "reception") {
+    const set = new Set<Area>(this.areaMap.values());
+    switch (type) {
+      case "*":
+        return [...set];
+      case "storage":
+      case "reception":
+        return [...set].filter((area) => area.type === type);
+    }
+  }
+  getSurroundings(
+    col: number,
+    row: number
+  ): { [key: string]: { col: number; row: number } } {
+    const surroundings = {
+      bottomLeft: { row: row + 1, col: col - 1 },
+      bottom: { row: row + 1, col: col },
+      bottomRight: { row: row + 1, col: col + 1 },
+      left: { row: row, col: col - 1 },
+      right: { row: row, col: col + 1 },
+      topLeft: { row: row - 1, col: col - 1 },
+      top: { row: row - 1, col: col },
+      topRight: { row: row - 1, col: col + 1 },
+    };
+
+    return surroundings;
+  }
+
+  getNeighbors(col: number, row: number): { col: number; row: number }[] {
+    return [
+      { row: row + 1, col: col },
+      { row: row, col: col - 1 },
+      { row: row, col: col + 1 },
+      { row: row - 1, col: col },
+    ].filter((cell) => this.isWithinBounds(cell.col, cell.row));
+  }
+
   getRandomEmptyCell(): { row: number; col: number } {
     const row = getRandomInt(this.rows);
     const col = getRandomInt(this.cols);

@@ -1,4 +1,4 @@
-import { getRandomInt } from "../../../../../../utils/helper-functions";
+import { getRandomInt, oneIn } from "../../../../../../utils/helper-functions";
 import { CELL_SIZE } from "../../../../constants";
 import { Resource } from "../../../Staff/entities/Resource/Resource";
 
@@ -8,7 +8,7 @@ export class Rock extends Phaser.GameObjects.Image {
   grid: Grid;
   col: number;
   row: number;
-  resources = 25;
+  resources = getRandomInt(1, 4);
   markedForHarvest = false;
   harvestMultiplier = 0.1; // TODO Depends on size
   constructor(grid: Grid, col: number, row: number) {
@@ -28,7 +28,24 @@ export class Rock extends Phaser.GameObjects.Image {
   }
 
   harvest() {
-    new Resource(this.grid.scene, "stone", this.resources, this.col, this.row);
+    const surroundings = this.grid.getSurroundings(this.col, this.row);
+
+    for (const [key, { col, row }] of Object.entries(surroundings)) {
+      const objInPlace = this.grid.objectMatrix[row][col];
+      if (objInPlace) continue;
+      if (oneIn(3)) {
+        new Resource(this.grid.scene, "stone", getRandomInt(1, 4), col, row);
+        //TODO Make it make sense
+      }
+    }
+    new Resource(
+      this.grid.scene,
+      "stone",
+      getRandomInt(1, 4),
+      this.col,
+      this.row
+    );
+
     return this.resources;
   }
   remove() {

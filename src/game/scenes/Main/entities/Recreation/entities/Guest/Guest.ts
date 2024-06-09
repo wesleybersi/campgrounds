@@ -72,9 +72,9 @@ export class Guest extends Agent {
     if (this.group.campsite && oneIn(1000)) {
       this.goto(
         this.group.campsite.rect.topLeft.col +
-          getRandomInt(this.group.campsite.grid[0].length),
+          getRandomInt(this.group.campsite.cells[0].length),
         this.group.campsite.rect.topLeft.row +
-          getRandomInt(this.group.campsite.grid.length)
+          getRandomInt(this.group.campsite.cells.length)
       );
     }
 

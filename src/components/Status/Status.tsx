@@ -17,7 +17,8 @@ const Status = () => {
           onMouseEnter={() => setShowOrders(true)}
           onMouseLeave={() => setShowOrders(false)}
         >
-          {scene.staff.queuedTasks.length} orders
+          {scene.staff.queuedTasks.length} orders ---
+          {scene.staff.resourcesNotInStorage.size}
           {/* {showOrders && <OrderQueue />} */}
         </div>
         <div></div>

@@ -2,7 +2,6 @@ import { getRandomInt, oneIn } from "../../../../utils/helper-functions";
 import MainScene from "../../MainScene";
 import { Group } from "./entities/Group/Group";
 import { Guest } from "./entities/Guest/Guest";
-import { Reception } from "./entities/Reception/Reception";
 import { Site } from "./entities/Site/Site";
 import { Spawner } from "./entities/Spawner/Spawner";
 
@@ -12,7 +11,6 @@ export class Recreation {
   guests = new Set<Guest>();
   groups = new Set<Group>();
   spawner: Spawner;
-  reception: Reception | null = null;
   constructor(scene: MainScene) {
     this.scene = scene;
     let row = 0;

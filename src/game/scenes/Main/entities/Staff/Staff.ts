@@ -12,6 +12,7 @@ export class Staff {
   queuedTasks: Task[] = [];
   taskMatrix: (Task | null)[][] = [];
   resourceMatrix: (Resource | null)[][] = []; // Todo, map?
+  resourcesNotInStorage: Set<Resource> = new Set();
   constructor(scene: MainScene) {
     this.scene = scene;
     this.taskMatrix = Array.from({ length: scene.rowCount }, () =>
@@ -25,36 +26,25 @@ export class Staff {
     return Array.from(this.workers).filter((worker) => worker.type === type);
   }
   update(delta: number) {
-    const resources = this.resourceMatrix
-      .flat()
-      .filter((resource) => resource instanceof Resource);
-    for (const resource of resources) {
-      if (resource) {
-        const areaUnderneath =
-          this.scene.grid.areaMatrix[resource.row][resource.col];
-        if (areaUnderneath && areaUnderneath instanceof Storage) continue;
-
-        //ANCHOR Haul resource
-        // new Task(
-        //   this.scene,
-        //   new Set(["builder"]),
-        //   resource.col,
-        //   resource.row,
-        //   Infinity,
-        //   undefined,
-        //   () => {
-        //     const nearestStorageSlot = { col: 0, row: 0 };
-        //     new Task(
-        //       this.scene,
-        //       "builder",
-        //       nearestStorageSlot.col,
-        //       nearestStorageSlot.row,
-        //       Infinity
-        //     );
-        //   }
-        // );
-      }
-    }
+    //ANCHOR Haul resource
+    // new Task(
+    //   this.scene,
+    //   new Set(["builder"]),
+    //   resource.col,
+    //   resource.row,
+    //   Infinity,
+    //   undefined,
+    //   () => {
+    //     const nearestStorageSlot = { col: 0, row: 0 };
+    //     new Task(
+    //       this.scene,
+    //       "builder",
+    //       nearestStorageSlot.col,
+    //       nearestStorageSlot.row,
+    //       Infinity
+    //     );
+    //   }
+    // );
   }
   redirectAll() {
     //TODO this sucks donkey ass

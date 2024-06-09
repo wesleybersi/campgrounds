@@ -49,20 +49,16 @@ export function keyboardEvents(this: Client) {
         case "[":
           this.scene.recreation.spawner.spawn();
           break;
-        case "Backspace":
-          this.scene.grid.areaMatrix.flat().forEach((area) => area?.deselect());
-          this.order = "";
-          break;
         case "0":
-          if (!this.overlay) {
-            this.overlay = "area";
-            for (const area of this.scene.grid.areaMatrix.flat()) {
-              if (area) area.setFillStyle(0x000000, 0.1);
+          if (!this.overlay.areas) {
+            this.overlay.areas = true;
+            for (const area of this.scene.grid.getAreas("*")) {
+              area.show();
             }
           } else {
-            this.overlay = null;
-            for (const area of this.scene.grid.areaMatrix.flat()) {
-              if (area) area.setFillStyle(0x000000, 0);
+            this.overlay.areas = false;
+            for (const area of this.scene.grid.getAreas("*")) {
+              area.hide();
             }
           }
           break;

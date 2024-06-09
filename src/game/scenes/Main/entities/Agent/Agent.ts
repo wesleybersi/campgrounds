@@ -1,11 +1,6 @@
 import { Position } from "../../../../types";
-import {
-  getRandomInt,
-  oneIn,
-  absolutePos,
-} from "../../../../utils/helper-functions";
+import { getRandomInt, absolutePos } from "../../../../utils/helper-functions";
 import MainScene from "../../MainScene";
-import { CELL_SIZE } from "../../constants";
 import { createAnimations } from "./animation/create-animations";
 import { findEmptyCell } from "./methods/find-empty-cell";
 import { goto } from "./methods/goto";
@@ -15,6 +10,7 @@ import { redirect } from "./methods/redirect";
 import { wander } from "./methods/wander";
 
 export class Agent extends Phaser.GameObjects.Sprite {
+  shadow: Phaser.GameObjects.Image;
   isActive = true;
   scene: MainScene;
   col: number;
@@ -43,12 +39,18 @@ export class Agent extends Phaser.GameObjects.Sprite {
     this.scene = scene;
     this.col = col;
     this.row = row;
+
+    this.shadow = this.scene.add
+      .image(this.x, this.y, "agent-shadow")
+      .setOrigin(0.5, -0.35);
+
     this.generateRandomName();
     this.createAnimations();
     this.scene.allAgents.add(this);
     this.scene.add.existing(this);
   }
   update(delta: number) {
+    this.shadow.setPosition(this.x, this.y);
     this.setDepth(this.y);
 
     if (this.scene.grid.collisionMap[this.row][this.col] === 1) {

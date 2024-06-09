@@ -24,7 +24,7 @@ export class Site extends Area {
     this.scene.recreation.sites.add(this);
     this.scene.add.existing(this);
 
-    this.pricePerDay += PRICE_PER_CELL * this.grid.flat().length;
+    this.pricePerDay += PRICE_PER_CELL * this.cells.flat().length;
   }
 
   occupy(group: Group) {
@@ -33,8 +33,8 @@ export class Site extends Area {
     this.occupants = group;
     group.campsite = this;
     for (const guest of group.guests) {
-      const col = this.rect.topLeft.col + getRandomInt(this.grid[0].length);
-      const row = this.rect.topLeft.row + getRandomInt(this.grid.length);
+      const col = this.rect.topLeft.col + getRandomInt(this.cells[0].length);
+      const row = this.rect.topLeft.row + getRandomInt(this.cells.length);
 
       guest.goto(col, row);
     }
@@ -63,8 +63,8 @@ export class Site extends Area {
 
           return;
         }
-        const col = getRandomInt(this.grid[0].length);
-        const row = getRandomInt(this.grid.length);
+        const col = getRandomInt(this.cells[0].length);
+        const row = getRandomInt(this.cells.length);
 
         // Check if it fits within the grid
         if (this.fitsWithinGrid(col, row, tent.size[0], tent.size[1])) {
@@ -132,8 +132,8 @@ export class Site extends Area {
     return (
       col >= 0 &&
       row >= 0 &&
-      col + cols <= this.grid[0].length &&
-      row + rows <= this.grid.length
+      col + cols <= this.cells[0].length &&
+      row + rows <= this.cells.length
     );
   }
 }

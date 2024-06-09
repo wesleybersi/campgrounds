@@ -28,10 +28,9 @@ const Construction: React.FC<Props> = ({ bottom }) => {
   const [tabIndex, setTabIndex] = useState<number>(0);
 
   useEffect(() => {
-    scene.client.order = "";
+    scene.client.command.clear();
     return () => {
-      // Run your cleanup code here
-      scene.client.order = "";
+      scene.client.command.clear();
     };
   }, [tabIndex]);
 
