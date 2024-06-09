@@ -6,7 +6,7 @@ import { Controller } from "../types";
 export function extendAreaInPlace(
   scene: MainScene,
   cells: Position[],
-  type: "storage" | "reception"
+  type: "storage" | "reception" | "forester's lodge"
 ): boolean {
   for (const cell of cells) {
     const areaInPlace = scene.grid.areaMap.get(`${cell.col},${cell.row}`);
@@ -59,6 +59,15 @@ export const areaCommands: Controller = {
       if (!scene.client.selection) return;
       if (!extendAreaInPlace(scene, cells, "reception")) {
         new Area(scene, "reception", cells);
+      }
+    },
+  },
+  ["forester's lodge"]: {
+    selectionType: "grid",
+    onPointerUp(scene, pointer, cells) {
+      if (!scene.client.selection) return;
+      if (!extendAreaInPlace(scene, cells, "forester's lodge")) {
+        new Area(scene, "forester's lodge", cells);
       }
     },
   },

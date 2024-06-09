@@ -3,28 +3,49 @@ import MainScene from "../../MainScene";
 // import { Builder } from "./force/Builder/Builder";
 // import { Forester } from "./force/Forester/Forester";
 import { Task } from "./entities/Task/Task";
-import { Resource } from "./entities/Resource/Resource";
-import { Worker } from "./entities/Worker/Worker";
+import { Resource } from "../Resources/entities/Resource/Resource";
+import { Worker, WorkerType } from "./entities/Worker/Worker";
 
 export class Staff {
   scene: MainScene;
   workers = new Set<Worker>();
   queuedTasks: Task[] = [];
   taskMatrix: (Task | null)[][] = [];
-  resourceMatrix: (Resource | null)[][] = []; // Todo, map?
-  resourcesNotInStorage: Set<Resource> = new Set();
+
   constructor(scene: MainScene) {
     this.scene = scene;
     this.taskMatrix = Array.from({ length: scene.rowCount }, () =>
-      Array.from({ length: scene.colCount }, () => null)
-    );
-    this.resourceMatrix = Array.from({ length: scene.rowCount }, () =>
       Array.from({ length: scene.colCount }, () => null)
     );
   }
   getWorkerType(type: "forester" | "builder") {
     return Array.from(this.workers).filter((worker) => worker.type === type);
   }
+  getNearestIdleWorkerTo(
+    position: { col: number; row: number },
+    type: WorkerType | "*" = "*"
+  ) {
+    let nearestWorker = null;
+    let minDistance = Infinity;
+
+    for (const worker of this.workers) {
+      if (worker.taskQueue.length > 0) continue;
+      if (worker.carriedResource) continue;
+      if (worker.isHauling) continue;
+      if (type !== "*" && worker.type !== type) continue;
+      const distance = Math.sqrt(
+        Math.pow(worker.col - position.col, 2) +
+          Math.pow(worker.row - position.row, 2)
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        nearestWorker = worker;
+      }
+    }
+
+    return nearestWorker;
+  }
+
   update(delta: number) {
     //ANCHOR Haul resource
     // new Task(

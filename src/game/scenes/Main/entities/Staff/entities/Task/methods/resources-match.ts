@@ -1,4 +1,4 @@
-import { ResourceType } from "../../Resource/Resource";
+import { ResourceType } from "../../../../Resources/entities/Resource/Resource";
 import { Task } from "../Task";
 
 export function resourcesMatchRequirement(this: Task): boolean {

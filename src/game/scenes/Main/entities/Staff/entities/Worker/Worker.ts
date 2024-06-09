@@ -3,12 +3,13 @@ import { absolutePos } from "../../../../../../utils/helper-functions";
 import MainScene from "../../../../MainScene";
 
 import { Agent } from "../../../Agent/Agent";
-import { Resource } from "../Resource/Resource";
+import { Resource } from "../../../Resources/entities/Resource/Resource";
 
 import { Task } from "../Task/Task";
 import { getNewTask } from "./methods/get-task";
 import { haul } from "./methods/haul";
-import { Storage } from "../Storage/Storage";
+
+import { LawnMower } from "../LawnMower/LawnMower";
 
 export type WorkerType = "forester" | "builder";
 
@@ -20,6 +21,7 @@ export class Worker extends Agent {
   haulTarget?: number;
   isHauling = false;
   carriedResource: Resource | null = null;
+  tool: LawnMower | null = null;
 
   haul = haul;
   getNewTask = getNewTask;
@@ -48,12 +50,17 @@ export class Worker extends Agent {
   }
 
   update(delta: number) {
+    if (this.tool) {
+      this.tool.update();
+    }
+
     this.hat.x = this.x;
     this.hat.y = this.y;
     this.hat.setDepth(this.depth + 2);
 
     if (this.carriedResource) {
-      this.carriedResource.update(this.x, this.y);
+      this.carriedResource.setPosition(this.x, this.y);
+      this.carriedResource.update();
     }
 
     if (
@@ -67,8 +74,7 @@ export class Worker extends Agent {
     }
 
     if (this.taskQueue.length > 0) {
-      //ANCHOR Work task
-
+      //ANCHOR If assigned task
       const task = this.taskQueue[0];
       if (this.col === task.col && this.row === task.row) {
         task.advance(delta);
@@ -83,7 +89,7 @@ export class Worker extends Agent {
                 this.haulTarget &&
                 this.carriedResource.amount < this.haulTarget
               ) {
-                //ANCHOR If more resources needed
+                //ANCHOR If more resources required
                 if (!this.haul(this.carriedResource.type)) {
                   //ANCHOR If no more resources found
                   this.haulTarget = this.carriedResource.amount;
@@ -93,6 +99,7 @@ export class Worker extends Agent {
           }
 
           if (this.scene.grid.collisionMap[task.row][task.col] === 1) {
+            //ANCHOR If target has collision, move next to target
             task.setVicinityTarget();
           }
 
@@ -100,108 +107,29 @@ export class Worker extends Agent {
         }
       }
     } else {
-      //ANCHOR Find task
-      const isTaskAssigned = this.getNewTask();
+      //ANCHOR If no current task
+      if (this.carriedResource) {
+        if (!this.scene.resources.storageAvailable) {
+          //ANCHOR Drop haul when no storage available
+          this.carriedResource.drop();
+          return;
+        }
 
-      if (
-        !isTaskAssigned &&
-        this.scene.staff.resourcesNotInStorage.size > 0 &&
-        !this.isHauling
-      ) {
-        if (
-          !this.carriedResource ||
-          (this.carriedResource && this.carriedResource.amount < MAX_CARRY)
-        ) {
-          for (const resource of this.scene.staff.resourcesNotInStorage) {
-            if (
-              this.carriedResource &&
-              this.carriedResource.type !== resource?.type
-            )
-              continue;
-            if (!resource || resource.carriedBy || resource.targeted) continue;
-
-            const areaInPlace = this.scene.grid.areaMap.get(
-              `${resource.col},${resource.row}`
-            );
-            if (
-              !areaInPlace ||
-              (areaInPlace && areaInPlace.type !== "storage")
-            ) {
-              //Resource should get hauled to storage
-              const haulTask = new Task(
-                this.scene,
-                resource.col,
-                resource.row,
-                {
-                  labor: [this.type],
-                  multiplier: Infinity,
-                  hidePlaceholder: true,
-                  onStart: () => {
-                    this.isHauling = true;
-                    resource.targeted = this; // TODO Remove target when canceled or carried
-                  },
-                  onComplete: () => {
-                    resource.targeted = null;
-                    this.isHauling = false;
-                    if (!this.carriedResource) {
-                      if (resource.amount <= MAX_CARRY) {
-                        //ANCHOR Take it all
-                        this.carriedResource = resource;
-                        this.carriedResource.carriedBy = this;
-                      } else if (resource.amount > MAX_CARRY) {
-                        //ANCHOR Take only what's neccesary
-                        this.carriedResource = resource;
-                        this.carriedResource.carriedBy = this;
-
-                        const splitAmount = resource.amount - MAX_CARRY;
-                        resource.amount -= splitAmount;
-                        new Resource(
-                          this.scene,
-                          resource.type,
-                          splitAmount,
-                          resource.col,
-                          resource.row
-                        );
-                        this.carriedResource?.updateAmount();
-                      }
-                    } else {
-                      while (
-                        this.carriedResource.amount < MAX_CARRY &&
-                        resource.amount > 0
-                      ) {
-                        this.carriedResource.amount++;
-                        resource.amount--;
-                      }
-
-                      resource?.updateAmount();
-                      this.carriedResource?.updateAmount();
-                    }
-                  },
-                }
-              );
-              haulTask.assign(this);
+        if (this.carriedResource.amount < MAX_CARRY) {
+          if (this.haul(this.carriedResource.type, false)) return;
+          //ANCHOR Haul resource to storage
+        }
+        const storages = this.scene.resources.getAvailableStorages();
+        if (storages.length > 0) {
+          for (const storage of storages) {
+            if (storage.reserve(this, this.carriedResource)) {
               break;
             }
           }
         }
-
-        if (this.carriedResource) {
-          const areas = this.scene.grid
-            .getAreas("storage")
-            .filter(
-              (storage) =>
-                storage.module instanceof Storage && !storage.module.isFilled
-            );
-          //TODO Nearby storage
-
-          if (areas.length > 0) {
-            const storage = areas[0];
-            if (storage.module instanceof Storage) {
-              storage.module.reserveSlot(this, this.carriedResource);
-            }
-          }
-        }
-        //Haul resources to storage
+      } else {
+        //ANCHOR Find task
+        this.getNewTask();
       }
     }
 

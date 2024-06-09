@@ -6,7 +6,9 @@ import { Client } from "../../entities/Client/Client.ts";
 import { Grid } from "../../entities/Grid/Grid.ts";
 
 import { Recreation } from "../../entities/Recreation/Recreation.ts";
-import { getRandomInt } from "../../../../utils/helper-functions.ts";
+import { Resources } from "../../entities/Resources/Resources.ts";
+import { Nature } from "../../entities/Grid/entities/Nature/Nature.ts";
+import { LawnMower } from "../../entities/Staff/entities/LawnMower/LawnMower.ts";
 
 export default function create(this: MainScene) {
   this.hasLoaded = false;
@@ -14,9 +16,13 @@ export default function create(this: MainScene) {
   const createEntities = () => {
     this.client = new Client(this);
     this.grid = new Grid(this, this.rowCount, this.colCount);
-
     this.staff = new Staff(this);
+    this.resources = new Resources(this);
     this.recreation = new Recreation(this);
+    this.nature = new Nature(this);
+
+    const cell = this.grid.getRandomEmptyCell();
+    new LawnMower(this, cell.col, cell.row);
   };
 
   const createCamera = () => {

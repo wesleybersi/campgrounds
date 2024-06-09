@@ -3,6 +3,7 @@ import { FloorPlanks } from "../../../../../Grid/entities/FloorPlanks/FloorPlank
 import { Flower } from "../../../../../Grid/entities/Flower/Flower";
 import { Rock } from "../../../../../Grid/entities/Rock/Rock";
 import { Tree } from "../../../../../Grid/entities/Tree/Tree";
+import { LawnMower } from "../../../../../Staff/entities/LawnMower/LawnMower";
 import { Task } from "../../../../../Staff/entities/Task/Task";
 import { Controller } from "../types";
 
@@ -26,7 +27,8 @@ export const constructionCommands: Controller = {
           if (
             objectInPlace instanceof Tree ||
             objectInPlace instanceof Rock ||
-            objectInPlace instanceof Flower
+            objectInPlace instanceof Flower ||
+            objectInPlace instanceof LawnMower
           )
             return;
           new Task(scene, col, row, {

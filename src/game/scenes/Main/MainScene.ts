@@ -13,6 +13,8 @@ import { Grid } from "./entities/Grid/Grid";
 import { Staff } from "./entities/Staff/Staff";
 import { Agent } from "./entities/Agent/Agent";
 import { Recreation } from "./entities/Recreation/Recreation";
+import { Resources } from "./entities/Resources/Resources";
+import { Nature } from "./entities/Grid/entities/Nature/Nature";
 
 export const createMainScene = (callback: (scene: MainScene) => void) => {
   return new MainScene(callback);
@@ -36,7 +38,9 @@ export default class MainScene extends Phaser.Scene {
 
   allAgents = new Set<Agent>();
   staff!: Staff;
+  resources!: Resources;
   recreation!: Recreation;
+  nature!: Nature;
 
   //Controls
   buttons = { shift: false, r: false };
@@ -46,6 +50,7 @@ export default class MainScene extends Phaser.Scene {
   // boundingBox!: Phaser.GameObjects.Rectangle;
 
   //Matrix
+
   objectMatrix: string[][] = [];
   spriteGridMatrix: string[][] = []; // <row,col, sprite>
 
@@ -82,10 +87,11 @@ export default class MainScene extends Phaser.Scene {
 
   constructor(callback: (scene: MainScene) => void) {
     super({ key: "Main" });
-    // this.rowCount = 400;
-    // this.colCount = 650;
     this.rowCount = 250;
     this.colCount = 350;
+
+    this.rowCount = 100;
+    this.colCount = 100;
     this.cellCount = this.rowCount * this.colCount;
     this.reactCallback = callback;
     this.width = this.colCount * CELL_SIZE;
@@ -98,6 +104,7 @@ export default class MainScene extends Phaser.Scene {
   }
   setSpeed(index: number) {
     this.gameSpeed = this.gameSpeedValues[index];
+    this.updateTimeScale();
   }
   increaseSpeed() {
     let index = this.gameSpeedValues.indexOf(this.gameSpeed);
@@ -107,6 +114,7 @@ export default class MainScene extends Phaser.Scene {
       index++;
     }
     this.gameSpeed = this.gameSpeedValues[index];
+    this.updateTimeScale();
   }
   decreaseSpeed() {
     let index = this.gameSpeedValues.indexOf(this.gameSpeed);
@@ -116,6 +124,13 @@ export default class MainScene extends Phaser.Scene {
       index--;
     }
     this.gameSpeed = this.gameSpeedValues[index];
+    this.updateTimeScale();
+  }
+  updateTimeScale() {
+    this.tweens.getTweens().forEach((tween) => {
+      tween.timeScale = this.gameSpeed;
+    });
+    this.anims.globalTimeScale = this.gameSpeed;
   }
 
   isInViewport(x: number, y: number) {

@@ -3,6 +3,7 @@ import { Agent } from "../Agent";
 export function createAnimations(this: Agent) {
   const framesPerPage = 16;
   const offset = this.characterIndex * framesPerPage;
+  const movementSpeed = 7;
 
   this.anims.create({
     key: "idle",
@@ -17,7 +18,7 @@ export function createAnimations(this: Agent) {
       start: 0 + offset,
       end: 3 + offset,
     }),
-    frameRate: 12,
+    frameRate: movementSpeed,
     repeat: -1,
   });
 
@@ -27,7 +28,7 @@ export function createAnimations(this: Agent) {
       start: 8 + offset,
       end: 11 + offset,
     }),
-    frameRate: 12,
+    frameRate: movementSpeed,
     repeat: -1,
   });
   this.anims.create({
@@ -36,7 +37,7 @@ export function createAnimations(this: Agent) {
       start: 12 + offset,
       end: 15 + offset,
     }),
-    frameRate: 12,
+    frameRate: movementSpeed,
     repeat: -1,
   });
   this.anims.create({
@@ -45,7 +46,7 @@ export function createAnimations(this: Agent) {
       start: 4 + offset,
       end: 7 + offset,
     }),
-    frameRate: 12,
+    frameRate: movementSpeed,
     repeat: -1,
   });
 }

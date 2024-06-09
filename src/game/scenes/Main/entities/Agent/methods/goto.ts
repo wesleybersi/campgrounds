@@ -20,13 +20,13 @@ export function goto(this: Agent, col: number, row: number): boolean {
 
   const generatedPath = this.scene.grid.pathFinder.findPath(startPos, goalPos);
 
-  for (const cell of generatedPath) {
+  for (const cell of generatedPath.slice(1)) {
     this.path.push({ col: cell[0], row: cell[1] });
   }
 
   this.target = { col, row };
 
-  this.pathHighlight();
+  this.highlightPath();
 
   if (this.path.length > 0) {
     return true;

@@ -3,6 +3,7 @@ import { CELL_SIZE, MAX_ZOOM, MIN_ZOOM, ZOOM_FACTOR } from "../../../constants";
 import { Guest } from "../../Recreation/entities/Guest/Guest";
 import { Client } from "../Client";
 import { Selection } from "../entities/Selection/Selection";
+import { Storage } from "../../Resources/entities/Storage/Storage";
 
 export function pointerEvents(this: Client) {
   const pointerMove = () => {
@@ -50,7 +51,7 @@ export function pointerEvents(this: Client) {
       }
 
       if (pointer.leftButtonDown()) {
-        if (this.command && this.command.onPointerDown) {
+        if (this.command.onPointerDown) {
           this.command.onPointerDown(
             this.scene,
             pointer,
@@ -58,16 +59,17 @@ export function pointerEvents(this: Client) {
             this.target.row
           );
         } else {
-          //Selecting things
-
-          this.scene.events.emit(
-            `${this.target.col},${this.target.row}`,
-            (agent: Agent) => {
-              if (agent instanceof Guest) {
-                console.log("Pong", agent);
-              }
-            }
+          const area = this.scene.grid.areaMap.get(
+            `${this.target.col},${this.target.row}`
           );
+          if (area && area.module instanceof Storage) {
+            area.module.getResourceCount();
+
+            console.log(
+              "Storage is filled:",
+              area.module.isFilled().toString()
+            );
+          }
         }
       }
     });

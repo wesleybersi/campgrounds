@@ -1,4 +1,4 @@
-import { Resource } from "../../Resource/Resource";
+import { Resource } from "../../../../Resources/entities/Resource/Resource";
 import { Task } from "../Task";
 
 export function dropResources(this: Task, resource: Resource) {
@@ -19,7 +19,7 @@ export function dropResources(this: Task, resource: Resource) {
     currentResource++;
   }
   currentResources[resource.type] = currentResource;
-  resource.updateAmount();
+  resource.update();
 
   if (this.resourcesMatchRequirement()) {
     delete this.requiredResources;

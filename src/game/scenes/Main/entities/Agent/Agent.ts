@@ -63,7 +63,7 @@ export class Agent extends Phaser.GameObjects.Sprite {
       this.wander();
     }
   }
-  pathHighlight() {
+  highlightPath() {
     for (const highlight of this.pathHighlights) {
       highlight.destroy();
     }

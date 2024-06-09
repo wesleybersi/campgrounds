@@ -20,11 +20,11 @@ export default function update(this: MainScene, _: number, delta: number) {
   for (const agent of this.allAgents) {
     agent.update(delta);
   }
+  this.resources.update(delta);
   //Then ready agents for next cycle
   // this.staff.update(delta);
   this.recreation.update(delta);
-
-  console.log(this.staff.resourcesNotInStorage.size);
+  this.nature.update(delta);
 
   const camera = this.cameras.main;
   this.frameCounter++;

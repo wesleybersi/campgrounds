@@ -83,11 +83,8 @@ export function move(this: Agent, delta: number) {
     },
   });
 
-  // const x = absolutePos(col);
-  // const y = absolutePos(row);
-  // const directionX = x - this.x;
-  // const directionY = y - this.y;
-
+  // const x = col * CELL_SIZE + CELL_SIZE / 2;
+  // const y = row * CELL_SIZE + CELL_SIZE / 2;
   // if (Math.abs(x - this.x) < 8 && Math.abs(y - this.y) < 8) {
   //   this.path.shift();
   //   this.isMoving = false;
@@ -110,5 +107,4 @@ export function move(this: Agent, delta: number) {
   //   // Update the position
   //   this.x += normalizedDirectionX * moveDistance;
   //   this.y += normalizedDirectionY * moveDistance;
-  // }
 }

@@ -2,11 +2,10 @@ import { useEffect, useState } from "react";
 import styles from "./styles.module.scss";
 import useStore from "../../../../store/store";
 
-import { FaCampground as IconCampground } from "react-icons/fa";
-
 import { MdClear as IconClear } from "react-icons/md";
 import { PiSignIn as IconReception } from "react-icons/pi";
 import { FaBoxesStacked as IconStorage } from "react-icons/fa6";
+import { GiWoodAxe as IconLodge } from "react-icons/gi";
 
 interface Props {
   bottom: number;
@@ -31,6 +30,10 @@ const Areas: React.FC<Props> = ({ bottom }) => {
     {
       order: "reception",
       icon: <IconReception size={iconSize} />,
+    },
+    {
+      order: "forester's lodge",
+      icon: <IconLodge size={iconSize} />,
     },
     // {
     //   order: "campsite",

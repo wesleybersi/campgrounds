@@ -1,7 +1,7 @@
 import { Position } from "../../../../types";
 import { absolutePos } from "../../../../utils/helper-functions";
 import MainScene from "../../MainScene";
-import { Storage } from "../Staff/entities/Storage/Storage";
+import { Storage } from "../Resources/entities/Storage/Storage";
 import { Reception } from "../Recreation/entities/Reception/Reception";
 
 interface AreaCell {
@@ -10,14 +10,14 @@ interface AreaCell {
   graphic?: Phaser.GameObjects.Image;
 }
 export class Area {
-  type: "storage" | "reception";
+  type: "storage" | "reception" | "forester's lodge";
   scene: MainScene;
   cells: AreaCell[] = [];
   isSelected = false;
   module: Storage | Reception;
   constructor(
     scene: MainScene,
-    type: "storage" | "reception",
+    type: "storage" | "reception" | "forester's lodge",
     cells: { col: number; row: number }[]
   ) {
     this.scene = scene;
@@ -27,6 +27,9 @@ export class Area {
         this.module = new Storage(this);
         break;
       case "reception":
+        this.module = new Reception(this);
+        break;
+      case "forester's lodge":
         this.module = new Reception(this);
         break;
     }
@@ -39,36 +42,28 @@ export class Area {
       if (this.scene.client.overlay.areas) {
         const graphic = this.scene.add
           .image(absolutePos(col), absolutePos(row), "white-tile")
-          .setAlpha((col + row) % 2 === 0 ? 0.1 : 0.2);
+          .setAlpha((col + row) % 2 === 0 ? 0.1 : 0.2)
+          .setTint(this.module.color);
 
         this.cells.push({ col, row, graphic });
         this.scene.grid.areaMap.set(`${col},${row}`, this);
+
+        if (this.module instanceof Storage) this.module.addSlot(col, row);
       }
     }
-    this.module?.update();
   }
-  show() {
-    for (const cell of this.cells) {
-      cell.graphic = this.scene.add
-        .image(absolutePos(cell.col), absolutePos(cell.row), "white-tile")
-        .setAlpha((cell.col + cell.row) % 2 === 0 ? 0.1 : 0.2);
-    }
-    this.module?.update();
-  }
-  hide() {
-    for (const { graphic } of this.cells) {
-      graphic?.destroy();
-    }
-    this.module?.update();
-  }
+
   clear(cells: { col: number; row: number }[]) {
     for (const { col, row } of cells) {
       const cellInPlace = this.cells.find(
         (cell) => cell.col === col && cell.row === row
       );
       if (!cellInPlace) continue;
+
       cellInPlace.graphic?.destroy();
       this.scene.grid.areaMap.delete(`${col},${row}`);
+
+      if (this.module instanceof Storage) this.module.clearSlot(col, row);
     }
 
     const updatedCells = this.cells.filter((cell) =>
@@ -116,10 +111,14 @@ export class Area {
           col: cell.col,
           row: cell.row,
         }));
-        new Area(this.scene, this.type, cells);
+        const area = new Area(this.scene, this.type, cells);
+        if (this.module instanceof Storage && area.module instanceof Storage) {
+          area.module.copySettings(this.module);
+        }
       }
     }
   }
+
   getNeighbors(col: number, row: number): { col: number; row: number }[] {
     return [
       { row: row + 1, col: col },
@@ -137,5 +136,19 @@ export class Area {
       this.scene.grid.areaMap.delete(`${col},${row}`);
     }
     this.cells = [];
+  }
+
+  show() {
+    for (const cell of this.cells) {
+      cell.graphic = this.scene.add
+        .image(absolutePos(cell.col), absolutePos(cell.row), "white-tile")
+        .setAlpha((cell.col + cell.row) % 2 === 0 ? 0.1 : 0.2)
+        .setTint(this.module.color);
+    }
+  }
+  hide() {
+    for (const { graphic } of this.cells) {
+      graphic?.destroy();
+    }
   }
 }

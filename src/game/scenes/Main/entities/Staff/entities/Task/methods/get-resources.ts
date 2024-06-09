@@ -1,5 +1,5 @@
 import { MAX_CARRY } from "../../../../../constants";
-import { ResourceType } from "../../Resource/Resource";
+import { ResourceType } from "../../../../Resources/entities/Resource/Resource";
 import { Task } from "../Task";
 
 export function getResources(this: Task) {

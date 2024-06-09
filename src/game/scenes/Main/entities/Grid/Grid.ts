@@ -53,10 +53,11 @@ export class Grid {
     const maxForestAmount = Math.floor(
       (this.scene.colCount + this.scene.rowCount) / 5
     );
-    console.log(minForestAmount, maxForestAmount);
-    const forestAmount = getRandomInt(32, maxForestAmount);
+    const forestAmount = getRandomInt(minForestAmount, maxForestAmount);
     for (let i = 0; i < forestAmount; i++) {
-      const iterations = getRandomInt(8, 250);
+      const minIterations = 8;
+      const maxIterations = 24;
+      const iterations = getRandomInt(minIterations, maxIterations);
       new Forest(this, iterations);
     }
 
@@ -143,13 +144,24 @@ export class Grid {
 
     return surroundings;
   }
-
   getNeighbors(col: number, row: number): { col: number; row: number }[] {
     return [
       { row: row + 1, col: col },
       { row: row, col: col - 1 },
       { row: row, col: col + 1 },
       { row: row - 1, col: col },
+    ].filter((cell) => this.isWithinBounds(cell.col, cell.row));
+  }
+  getAllNeighbors(col: number, row: number): { col: number; row: number }[] {
+    return [
+      { row: row + 1, col: col },
+      { row: row, col: col - 1 },
+      { row: row, col: col + 1 },
+      { row: row - 1, col: col },
+      { row: row + 1, col: col + 1 },
+      { row: row - 1, col: col - 1 },
+      { row: row + 1, col: col - 1 },
+      { row: row - 1, col: col + 1 },
     ].filter((cell) => this.isWithinBounds(cell.col, cell.row));
   }
 
@@ -184,5 +196,25 @@ export class Grid {
     if (col < 0 || row < 0) return false;
     if (col > this.cols - 1 || row > this.rows - 1) return false;
     return true;
+  }
+  getClosestCellTo(
+    position: { col: number; row: number },
+    cells: { col: number; row: number }[]
+  ) {
+    let closestCell = null;
+    let minDistance = Infinity;
+
+    for (const cell of cells) {
+      const distance = Math.sqrt(
+        Math.pow(cell.col - position.col, 2) +
+          Math.pow(cell.row - position.row, 2)
+      );
+      if (distance < minDistance) {
+        minDistance = distance;
+        closestCell = cell;
+      }
+    }
+
+    return closestCell;
   }
 }

@@ -1,6 +1,6 @@
 import { getRandomInt, oneIn } from "../../../../../../utils/helper-functions";
 import { CELL_SIZE } from "../../../../constants";
-import { Resource } from "../../../Staff/entities/Resource/Resource";
+import { Resource } from "../../../Resources/entities/Resource/Resource";
 
 import { Grid } from "../../Grid";
 
@@ -28,9 +28,9 @@ export class Rock extends Phaser.GameObjects.Image {
   }
 
   harvest() {
-    const surroundings = this.grid.getSurroundings(this.col, this.row);
+    const surroundings = this.grid.getAllNeighbors(this.col, this.row);
 
-    for (const [key, { col, row }] of Object.entries(surroundings)) {
+    for (const { col, row } of surroundings) {
       const objInPlace = this.grid.objectMatrix[row][col];
       if (objInPlace) continue;
       if (oneIn(3)) {

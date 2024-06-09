@@ -3,6 +3,7 @@ import { Flower } from "../../../../../Grid/entities/Flower/Flower";
 import { Hedge } from "../../../../../Grid/entities/Hedge/Hedge";
 import { Rock } from "../../../../../Grid/entities/Rock/Rock";
 import { Tree } from "../../../../../Grid/entities/Tree/Tree";
+import { LawnMower } from "../../../../../Staff/entities/LawnMower/LawnMower";
 import { Task } from "../../../../../Staff/entities/Task/Task";
 import { Controller } from "../types";
 
@@ -48,12 +49,13 @@ export const forestingCommands: Controller = {
         const tileInPlace = scene.grid.floorMatrix[row][col];
         if (tileInPlace !== "grass") continue;
 
-        //TODO Forester needs grass-mower tool.
+        //TODO Forester needs lawn-mower tool.
 
         new Task(scene, col, row, {
           labor: ["forester"],
-          multiplier: 0.75,
+          multiplier: Infinity,
           color: 0xff0000,
+          requiredTool: "lawnmower",
           onComplete: () => {
             scene.grid.tileMap.placeGrassTile(col, row, 28);
           },

@@ -1,7 +1,7 @@
 import { getRandomInt } from "../../../../../../utils/helper-functions";
 import MainScene from "../../../../MainScene";
 import { CELL_SIZE } from "../../../../constants";
-import { Resource } from "../../../Staff/entities/Resource/Resource";
+import { Resource } from "../../../Resources/entities/Resource/Resource";
 
 import { Grid } from "../../Grid";
 

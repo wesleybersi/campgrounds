@@ -41,7 +41,6 @@ export default class BasicTilemap {
 
     this.placeInitialTiles();
     this.autoTileWater();
-    this.autoTileElevation();
   }
   getSurroundings(
     col: number,
@@ -86,19 +85,8 @@ export default class BasicTilemap {
   placeGrassTile(col: number, row: number, tileIndex?: number) {
     if (!this.grid.isWithinBounds(col, row)) return;
 
-    let index = tileIndex ?? 28; // empty grass tile
-
-    if (tileIndex === undefined) {
-      if (oneIn(50)) {
-        index = 163;
-      }
-
-      if (oneIn(200)) {
-        const deco = [162, 163, 165];
-        index = deco[getRandomInt(deco.length)];
-      }
-    }
-    const tile = this.base.putTileAt(index, col, row);
+    const index = tileIndex ?? 28; // empty grass tile
+    this.base.putTileAt(index, col, row);
 
     this.grid.floorMatrix[row][col] = "grass";
   }
@@ -112,17 +100,16 @@ export default class BasicTilemap {
       row.forEach((cell, x) => this.placeGrassTile(x, y))
     );
 
-    const patchAmount = getRandomInt(32);
+    const patchAmount = getRandomInt(8);
     for (let i = 0; i < patchAmount; i++) {
-      const type = oneIn(2) ? "elevation" : "water";
       const initialX = getRandomInt(this.scene.colCount);
       const initialY = getRandomInt(this.scene.rowCount);
 
-      let iterations = getRandomInt(1000);
+      let iterations = getRandomInt(125);
       const iterated = new Set<string>();
       const expandPatch = (x: number, y: number) => {
-        if (type === "water") this.placeWaterTile(x, y);
-        else this.placeElevationTile(x, y);
+        this.placeWaterTile(x, y);
+
         iterations--;
         if (iterations <= 0) return;
         const surroundings = [
@@ -349,212 +336,7 @@ export default class BasicTilemap {
       })
     );
   }
-  autoTileElevation() {
-    this.base.forEachTile((tile) => {
-      if (this.grid.floorMatrix[tile.y][tile.x] === "grass-elevated") {
-        this.grid.collisionMap[tile.y][tile.x] = 1;
-        const surroundings = this.getSurroundings(tile.x, tile.y);
-        for (const [key, surrounding] of Object.entries(surroundings)) {
-          if (this.grid.isWithinBounds(surrounding.col, surrounding.row))
-            continue;
-          delete surroundings[key];
-        }
 
-        const top = surroundings.top
-          ? this.grid.floorMatrix[surroundings.top.row][
-              surroundings.top.col
-            ] !== "grass-elevated"
-          : false;
-        const bottom = surroundings.bottom
-          ? this.grid.floorMatrix[surroundings.bottom.row][
-              surroundings.bottom.col
-            ] !== "grass-elevated"
-          : false;
-        const left = surroundings.left
-          ? this.grid.floorMatrix[surroundings.left.row][
-              surroundings.left.col
-            ] !== "grass-elevated"
-          : false;
-        const right = surroundings.right
-          ? this.grid.floorMatrix[surroundings.right.row][
-              surroundings.right.col
-            ] !== "grass-elevated"
-          : false;
-
-        const topLeft = surroundings.topLeft
-          ? this.grid.floorMatrix[surroundings.topLeft.row][
-              surroundings.topLeft.col
-            ] !== "grass-elevated"
-          : false;
-        const topRight = surroundings.topRight
-          ? this.grid.floorMatrix[surroundings.topRight.row][
-              surroundings.topRight.col
-            ] !== "grass-elevated"
-          : false;
-        const bottomLeft = surroundings.bottomLeft
-          ? this.grid.floorMatrix[surroundings.bottomLeft.row][
-              surroundings.bottomLeft.col
-            ] !== "grass-elevated"
-          : false;
-        const bottomRight = surroundings.bottomRight
-          ? this.grid.floorMatrix[surroundings.bottomRight.row][
-              surroundings.bottomRight.col
-            ] !== "grass-elevated"
-          : false;
-
-        const adjacentToTileIndex = (
-          top: boolean,
-          bottom: boolean,
-          left: boolean,
-          right: boolean,
-          topLeft: boolean,
-          topRight: boolean,
-          bottomLeft: boolean,
-          bottomRight: boolean
-        ): number => {
-          if (right && !left && !top && !bottom) return 29;
-          else if (!right && left && !top && !bottom) {
-            return 27;
-          } else if (!right && !left && !top && bottom) return 55;
-          else if (!right && !left && top && !bottom) return 1;
-          else if (!right && !left && top && bottom) {
-            return 82;
-          } else if (right && left && !top && !bottom) {
-            return 30;
-          } else if (right && !left && !top && bottom) {
-            // if (bottomRight) return 34;
-            return 56;
-          } else if (right && !left && top && !bottom) {
-            // if (topRight) return 7;
-            return 2;
-          } else if (!right && left && !top && bottom) {
-            // if (bottomLeft) return 26;
-            return 54;
-          } else if (!right && left && top && !bottom) {
-            // if (topLeft) return 4;
-            if (bottomRight) return 110;
-            return 0;
-          } else if (right && left && top && !bottom) {
-            // if (topLeft && !topRight) {
-            //   return 10;
-            // } else if (!topLeft && topRight) {
-            //   return 11;
-            // } else if (topLeft && topRight) {
-            //   return 12;
-            // } else if (!topLeft && !topRight) {
-            return 3;
-            // }
-          } else if (right && left && !top && bottom) {
-            // if (bottomLeft && !bottomRight) {
-            //   return 29;
-            // } else if (!bottomLeft && bottomRight) {
-            //   return 37;
-            // } else if (bottomLeft && bottomRight) {
-            //   return 42;
-            // } else if (!bottomLeft && !bottomRight) {
-            return 67;
-            // }
-          } else if (!right && left && top && bottom) {
-            // if (topLeft && !bottomLeft) {
-            //   return 17;
-            // } else if (!topLeft && bottomLeft) {
-            //   return 27;
-            // } else if (topLeft && bottomLeft) {
-            //   return 28;
-            // } else if (!topLeft && !bottomLeft) {
-            return 81;
-            // }
-          } else if (right && !left && top && bottom) {
-            // if (topRight && !bottomRight) {
-            //   return 20;
-            // } else if (!topRight && bottomRight) {
-            //   return 35;
-            // } else if (topRight && bottomRight) {
-            //   return 36;
-            // } else if (!topRight && !bottomRight) {
-            return 83;
-            // }
-          } else if (right && left && top && bottom) {
-            //Surrounded
-
-            if (topLeft && !bottomLeft && !topRight && !bottomRight) {
-              return 136;
-            } else if (!topLeft && !bottomLeft && topRight && !bottomRight) {
-              // return 24;
-            } else if (!topLeft && bottomLeft && !topRight && !bottomRight) {
-              // return 30;
-            } else if (!topLeft && !bottomLeft && !topRight && bottomRight) {
-              // return 38;
-            }
-            // if (topLeft && bottomLeft && !topRight && !bottomRight) {
-            //   return 31;
-            // } else if (!topLeft && !bottomLeft && topRight && bottomRight) {
-            //   return 40;
-            // } else if (topLeft && !bottomLeft && topRight && !bottomRight) {
-            //   return 25;
-            // } else if (!topLeft && bottomLeft && !topRight && bottomRight) {
-            //   return 43;
-            // }
-            // if (!topLeft && bottomLeft && topRight && bottomRight) {
-            //   return 45;
-            // } else if (topLeft && bottomLeft && !topRight && bottomRight) {
-            //   return 44;
-            // } else if (topLeft && !bottomLeft && topRight && bottomRight) {
-            //   return 41;
-            // } else if (topLeft && bottomLeft && topRight && !bottomRight) {
-            //   return 33;
-            // } else if (!topLeft && !topRight && !bottomLeft && !bottomRight)
-            return 84;
-          } else {
-            this.grid.collisionMap[tile.y][tile.x] = 0;
-            //Surrounded
-            if (topLeft && !bottomLeft && !topRight && !bottomRight) {
-              return 136;
-            } else if (!topLeft && !bottomLeft && topRight && !bottomRight) {
-              return 135;
-            } else if (!topLeft && bottomLeft && !topRight && !bottomRight) {
-              return 109;
-            } else if (!topLeft && !bottomLeft && !topRight && bottomRight) {
-              return 108;
-            }
-            if (topLeft && bottomLeft && !topRight && !bottomRight) {
-              // return 31;
-            } else if (!topLeft && !bottomLeft && topRight && bottomRight) {
-              // return 40;
-            } else if (topLeft && !bottomLeft && topRight && !bottomRight) {
-              // return 25;
-            } else if (!topLeft && bottomLeft && !topRight && bottomRight) {
-              // return 43;
-            }
-            if (!topLeft && bottomLeft && topRight && bottomRight) {
-              // return 45;
-            } else if (topLeft && bottomLeft && !topRight && bottomRight) {
-              // return 44;
-            } else if (topLeft && !bottomLeft && topRight && bottomRight) {
-              // return 41;
-            } else if (topLeft && bottomLeft && topRight && !bottomRight) {
-              // return 33;
-            } else if (!topLeft && !topRight && !bottomLeft && !bottomRight) {
-              //
-            }
-
-            return 28;
-          }
-        };
-
-        tile.index = adjacentToTileIndex(
-          top,
-          bottom,
-          left,
-          right,
-          topLeft,
-          topRight,
-          bottomLeft,
-          bottomRight
-        );
-      }
-    });
-  }
   autoTileDirt() {
     this.grid.floorMatrix.forEach((row, y) =>
       row.forEach((cell, x) => {
